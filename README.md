@@ -21,6 +21,20 @@ $ npm run watch
 
 ## Tutorial
 
+modelの作成
+```
+class SampleUserModel extends LeapsModel {
+  static properties() {
+    return {
+      name:        "",
+      age:         null,
+      admin:       false
+    }
+  }
+}
+```
+
+つかう
 ```
 // 新規作成
 var user = new SampleUserModel({name: "soplana"});
