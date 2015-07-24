@@ -1,0 +1,10 @@
+{
+  "devDependencies": {
+    "babel": "^4.7.16",
+    "gulp": "^3.8.11",
+    "gulp-babel": "^4.0.0"
+  },
+  "scripts": {
+    "watch": "gulp watch"
+  }
+}
