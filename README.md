@@ -127,7 +127,7 @@ Promiseを使ってレスポンスを受け取る
 ```
 var promise = user.show()
 
-promise.then(function(data){ // [SampleUserModel, SampleUserModel, ..., SampleUserModel]
+promise.then(function(data){
   console.log(data) // SampleUserModel
 
 }).catch(function(error){
