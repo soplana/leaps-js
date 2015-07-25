@@ -12,6 +12,10 @@ class LeapsModel {
     return this.modelClass.db().insert(this)
   };
 
+  destroy() {
+    return this.modelClass.db().destroy(this)
+  };
+
   getData() {
     return this.__mergeProperties__({}, this)
   };
@@ -23,7 +27,8 @@ class LeapsModel {
   };
 
   static find(id) {
-    return this.castModel( this.db().findById(id) )
+    var record = this.db().findById(id);
+    return record ? this.castModel(record) : null
   };
 
   static setUp() {
@@ -101,6 +106,23 @@ class LeapsDatabase {
     }
   };
 
+  destroy(record) {
+    try {
+      var deleteTargetRecord = this.findById(record.id)
+
+      if(!_.isEmpty(deleteTargetRecord)) {
+        this.__delete__(deleteTargetRecord);
+        return true
+      } else {
+        return false
+      }
+    } catch(e) {
+      console.log("delete error!");
+      console.log(e);
+      return false
+    }
+  };
+
   findById(id) {
     var table  = LeapsDatabase.tables[this.tableName];
     return _.findWhere(table, {id: id})
@@ -145,6 +167,12 @@ class LeapsDatabase {
   __update__(record) {
     var table = LeapsDatabase.tables[this.tableName];
     table[record.id - 1] = record.getData();
+  };
+
+  __delete__(record) {
+    var table = LeapsDatabase.tables[this.tableName];
+    var index = _.findIndex( table, {id: record.id} );
+    table.splice(index, 1);
   };
 
   // シーケンス番号

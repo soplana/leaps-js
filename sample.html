@@ -23,6 +23,20 @@
         user.name = "fugafuga"
         user.save() //=> true
         console.log( SampleUserModel.find(1) ) // SampleUserModel {name: "fugafuga", age: 30, admin: true, id: 1}
+
+
+        // delete
+        console.log("delete------------")
+        _.each([1,2,3,4,5], function(i){
+          new SampleUserModel({name: "soplana", age: i*10}).save()
+        })
+        var user = SampleUserModel.find(3)
+        console.log( user.destroy() ) //=> true
+        console.log( SampleUserModel.all() ) // null
+        console.log( SampleUserModel.find(3) ) // null
+
+        var user = new SampleUserModel({name: "hoge", age: 32});
+        console.log( user.destroy() ) //=> false
       })
     </script>
   </head>

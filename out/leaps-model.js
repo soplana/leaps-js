@@ -24,6 +24,11 @@ var LeapsModel = (function () {
         return this.modelClass.db().insert(this);
       }
     },
+    destroy: {
+      value: function destroy() {
+        return this.modelClass.db().destroy(this);
+      }
+    },
     getData: {
       value: function getData() {
         return this.__mergeProperties__({}, this);
@@ -78,7 +83,8 @@ var LeapsModel = (function () {
     },
     find: {
       value: function find(id) {
-        return this.castModel(this.db().findById(id));
+        var record = this.db().findById(id);
+        return record ? this.castModel(record) : null;
       }
     },
     setUp: {
@@ -150,6 +156,24 @@ var LeapsDatabase = (function () {
         }
       }
     },
+    destroy: {
+      value: function destroy(record) {
+        try {
+          var deleteTargetRecord = this.findById(record.id);
+
+          if (!_.isEmpty(deleteTargetRecord)) {
+            this.__delete__(deleteTargetRecord);
+            return true;
+          } else {
+            return false;
+          }
+        } catch (e) {
+          console.log("delete error!");
+          console.log(e);
+          return false;
+        }
+      }
+    },
     findById: {
       value: function findById(id) {
         var table = LeapsDatabase.tables[this.tableName];
@@ -189,6 +213,13 @@ var LeapsDatabase = (function () {
       value: function __update__(record) {
         var table = LeapsDatabase.tables[this.tableName];
         table[record.id - 1] = record.getData();
+      }
+    },
+    __delete__: {
+      value: function __delete__(record) {
+        var table = LeapsDatabase.tables[this.tableName];
+        var index = _.findIndex(table, { id: record.id });
+        table.splice(index, 1);
       }
     },
     __incrementSequence__: {
