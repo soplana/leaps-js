@@ -39,7 +39,7 @@ class SampleUserModel extends LeapsModel {
 // 新規作成
 var user = new SampleUserModel({name: "soplana"});
 user.admin = false
-user.save() //=> true
+user.save() // true
 
 // 全件取得
 SampleUserModel.all()   // [SampleUserModel]
@@ -50,6 +50,11 @@ SampleUserModel.find(1) // User {name: "soplana", admin: false, id: 1}
 // アップデート
 var user = SampleUserModel.find(1)
 user.name = "fugafuga"
-user.save() //=> true
+user.save() // true
 SampleUserModel.find(1) // SampleUserModel {name: "fugafuga", admin: false, id: 1}
+
+// 削除
+var user = SampleUserModel.find(1)
+user.destroy() // true
+SampleUserModel.find(1) // null
 ```
