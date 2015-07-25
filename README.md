@@ -71,7 +71,7 @@ users.length // 2
 ### modelにresourceを定義する
 ```
 class SampleUserModel extends LeapsModel {
-  static getResource() {
+  static resourcePath() {
     return '/users/{id}.json'
   };
 
