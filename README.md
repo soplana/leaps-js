@@ -57,4 +57,11 @@ SampleUserModel.find(1) // SampleUserModel {name: "fugafuga", admin: false, id: 
 var user = SampleUserModel.find(1)
 user.destroy() // true
 SampleUserModel.find(1) // null
+
+// where検索
+new SampleUserModel({name: "a", age: 10}).save()
+new SampleUserModel({name: "b", age: 10}).save()
+new SampleUserModel({name: "c", age: 20}).save()
+var users = SampleUserModel.where({age: 10})
+users.length // 2
 ```

@@ -93,7 +93,9 @@ var LeapsModel = (function () {
       }
     },
     where: {
-      value: function where() {}
+      value: function where(conditions) {
+        return this.db().where(conditions);
+      }
     },
     db: {
       value: function db() {
@@ -137,6 +139,11 @@ var LeapsDatabase = (function () {
         return LeapsDatabase.tables[LeapsDatabase.sequenceTableName(this.tableName)].sequenceNo;
       }
     },
+    table: {
+      get: function () {
+        return LeapsDatabase.tables[this.tableName];
+      }
+    },
     insert: {
 
       //***************** instanceMethods *****************//
@@ -176,8 +183,12 @@ var LeapsDatabase = (function () {
     },
     findById: {
       value: function findById(id) {
-        var table = LeapsDatabase.tables[this.tableName];
-        return _.findWhere(table, { id: id });
+        return _.findWhere(this.table, { id: id });
+      }
+    },
+    where: {
+      value: function where(conditions) {
+        return _.where(this.table, conditions);
       }
     },
     __createTables__: {
@@ -186,7 +197,7 @@ var LeapsDatabase = (function () {
       // tableの作成
 
       value: function __createTables__() {
-        if (_.isEmpty(LeapsDatabase.tables[this.tableName])) {
+        if (_.isEmpty(this.table)) {
           LeapsDatabase.tables[this.tableName] = [];
           LeapsDatabase.tables[LeapsDatabase.sequenceTableName(this.tableName)] = { sequenceNo: 1 };
         };
@@ -202,22 +213,19 @@ var LeapsDatabase = (function () {
     },
     __insert__: {
       value: function __insert__(record) {
-        var table = LeapsDatabase.tables[this.tableName];
-
         record.id = this.sequenceNo;
-        table[record.id - 1] = record.getData();
+        this.table[record.id - 1] = record.getData();
         this.__incrementSequence__(record);
       }
     },
     __update__: {
       value: function __update__(record) {
-        var table = LeapsDatabase.tables[this.tableName];
-        table[record.id - 1] = record.getData();
+        this.table[record.id - 1] = record.getData();
       }
     },
     __delete__: {
       value: function __delete__(record) {
-        var table = LeapsDatabase.tables[this.tableName];
+        var table = this.table;
         var index = _.findIndex(table, { id: record.id });
         table.splice(index, 1);
       }

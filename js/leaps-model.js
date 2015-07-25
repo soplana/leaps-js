@@ -35,7 +35,8 @@ class LeapsModel {
     LeapsDatabase.createDatabase();
   };
 
-  static where() {
+  static where(conditions) {
+    return this.db().where(conditions);
   };
 
   static db() {
@@ -85,6 +86,10 @@ class LeapsDatabase {
     return LeapsDatabase.tables[LeapsDatabase.sequenceTableName(this.tableName)].sequenceNo
   };
 
+  get table() {
+    return LeapsDatabase.tables[this.tableName]
+  };
+
   constructor(tableName) {
     this.tableName = tableName;
     this.__createTables__();
@@ -124,8 +129,11 @@ class LeapsDatabase {
   };
 
   findById(id) {
-    var table  = LeapsDatabase.tables[this.tableName];
-    return _.findWhere(table, {id: id})
+    return _.findWhere(this.table, {id: id})
+  };
+
+  where(conditions) {
+    return _.where(this.table, conditions)
   };
 
 //***************** classMethods *****************//
@@ -144,7 +152,7 @@ class LeapsDatabase {
 //***************** __privateMethods__ *****************//
   // tableの作成
   __createTables__() {
-    if( _.isEmpty(LeapsDatabase.tables[this.tableName]) ){
+    if( _.isEmpty(this.table) ){
       LeapsDatabase.tables[this.tableName] = [];
       LeapsDatabase.tables[LeapsDatabase.sequenceTableName(this.tableName)] =
         {sequenceNo: 1};
@@ -157,20 +165,17 @@ class LeapsDatabase {
   };
 
   __insert__(record) {
-    var table = LeapsDatabase.tables[this.tableName];
-
-    record.id            = this.sequenceNo;
-    table[record.id - 1] = record.getData();
+    record.id                 = this.sequenceNo;
+    this.table[record.id - 1] = record.getData();
     this.__incrementSequence__(record);
   };
 
   __update__(record) {
-    var table = LeapsDatabase.tables[this.tableName];
-    table[record.id - 1] = record.getData();
+    this.table[record.id - 1] = record.getData();
   };
 
   __delete__(record) {
-    var table = LeapsDatabase.tables[this.tableName];
+    var table = this.table;
     var index = _.findIndex( table, {id: record.id} );
     table.splice(index, 1);
   };

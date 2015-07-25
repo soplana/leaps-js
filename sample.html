@@ -37,6 +37,13 @@
 
         var user = new SampleUserModel({name: "hoge", age: 32});
         console.log( user.destroy() ) //=> false
+
+        // where
+        console.log("where------------")
+        var users = SampleUserModel.where({age: 30})
+        console.log( users )
+        console.log( users.length )
+
       })
     </script>
   </head>
