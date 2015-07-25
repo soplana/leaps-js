@@ -85,14 +85,14 @@ class SampleUserModel extends LeapsModel {
 };
 ```
 
-getリクエストを出す
+一覧を取得する(getリクエスト)
 ```
-SampleUserModel.get()
+SampleUserModel.index()
 ```
 
 Promiseを使ってレスポンスを受け取る
 ```
-var promise = SampleUserModel.get()
+var promise = SampleUserModel.index()
 
 promise.then(function(data){ // [SampleUserModel, SampleUserModel, ..., SampleUserModel]
   // 受け取った情報を一括保存する

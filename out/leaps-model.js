@@ -44,10 +44,14 @@ var LeapsHttpRequest = (function () {
   }
 
   _createClass(LeapsHttpRequest, null, {
-    get: {
-      value: function get(modelClass) {
+    index: {
+      value: function index(modelClass) {
 
-        var deferred = this.xhrRequest(modelClass, function (xhr) {
+        var deferred = this.xhrRequest(function (data) {
+          return _.map(data, function (d) {
+            return modelClass.castModel(d);
+          });
+        }, function (xhr) {
           xhr.open("GET", modelClass.getResource());
           xhr.send();
         });
@@ -56,17 +60,14 @@ var LeapsHttpRequest = (function () {
       }
     },
     xhrRequest: {
-      value: function xhrRequest(modelClass, callback) {
+      value: function xhrRequest(dataCast, callback) {
         var xhr = this.getXHRObject();
         var deferred = new LeapsDeferred();
 
         xhr.onreadystatechange = function () {
           if (xhr.readyState === 4) {
             if (xhr.status === 200) {
-              var data = _.map(JSON.parse(xhr.responseText), function (d) {
-                return modelClass.castModel(d);
-              });
-              deferred.resolve(data);
+              deferred.resolve(dataCast(JSON.parse(xhr.responseText)));
             } else {
               deferred.reject(xhr.responseText);
             }
@@ -304,9 +305,9 @@ var LeapsModelRequest = (function (_LeapsModelCriteria) {
 
       value: function getResource() {}
     },
-    get: {
-      value: function get() {
-        return LeapsHttpRequest.get(this);
+    index: {
+      value: function index() {
+        return LeapsHttpRequest.index(this);
       }
     }
   });

@@ -12,9 +12,12 @@ class LeapsDeferred {
 
 // リクエスト周りの処理
 class LeapsHttpRequest {
-  static get(modelClass) {
+  static index(modelClass) {
 
-    var deferred = this.xhrRequest(modelClass, function(xhr){
+    var deferred = this.xhrRequest(function(data){
+      return _.map(data, (d)=>{return modelClass.castModel(d)});
+
+    }, function(xhr){
       xhr.open("GET", modelClass.getResource());
       xhr.send()
     });
@@ -22,15 +25,14 @@ class LeapsHttpRequest {
     return deferred.promise
   };
 
-  static xhrRequest(modelClass, callback) {
+  static xhrRequest(dataCast, callback) {
     var xhr      = this.getXHRObject();
     var deferred = new LeapsDeferred();
 
     xhr.onreadystatechange = function (){
       if (xhr.readyState === 4) {
         if(xhr.status === 200){
-          var data = _.map(JSON.parse(xhr.responseText), (d)=>{return modelClass.castModel(d)});
-          deferred.resolve(data);
+          deferred.resolve(dataCast(JSON.parse(xhr.responseText)));
         } else {
           deferred.reject(xhr.responseText);
         }
@@ -194,8 +196,8 @@ class LeapsModelRequest extends LeapsModelCriteria {
   static getResource() {
   };
 
-  static get() {
-    return LeapsHttpRequest.get(this)
+  static index() {
+    return LeapsHttpRequest.index(this)
   }
 }
 
