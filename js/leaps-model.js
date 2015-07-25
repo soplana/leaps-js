@@ -18,7 +18,20 @@ class LeapsHttpRequest {
       return _.map(data, (d)=>{return modelClass.castModel(d)});
 
     }, function(xhr){
-      xhr.open("GET", modelClass.getResource());
+      xhr.open("GET", modelClass.routing().indexPath);
+      xhr.send()
+    });
+
+    return deferred.promise
+  };
+
+  static show(model, conditions) {
+
+    var deferred = this.xhrRequest(function(data){
+      return model.constructor.castModel(data);
+
+    }, function(xhr){
+      xhr.open("GET", model.routing().showPath);
       xhr.send()
     });
 
@@ -41,7 +54,7 @@ class LeapsHttpRequest {
     callback(xhr);
 
     return deferred
-  }
+  };
 
   static getXHRObject(){
     try{ return new XMLHttpRequest() }catch(e){};
@@ -80,17 +93,17 @@ class LeapsDatabase {
       } else {
         this.__update__(record);
       };
-      return true;
+      return true
     } catch(e) {
       console.log("insert error!");
       console.log(e);
-      return false;
+      return false
     }
   };
 
   destroy(record) {
     try {
-      var deleteTargetRecord = this.findById(record.id)
+      var deleteTargetRecord = this.findById(record.__id);
 
       if(!_.isEmpty(deleteTargetRecord)) {
         this.__delete__(deleteTargetRecord);
@@ -105,8 +118,8 @@ class LeapsDatabase {
     }
   };
 
-  findById(id) {
-    return _.findWhere(this.table, {id: id})
+  findById(__id) {
+    return _.findWhere(this.table, {__id: __id})
   };
 
   where(conditions) {
@@ -138,29 +151,29 @@ class LeapsDatabase {
 
   // 既に存在するレコードかどうかを調べる
   __isNewRecord__(newRecord) {
-    return _.isEmpty(this.findById(newRecord.id))
+    return _.isEmpty(this.findById(newRecord.__id))
   };
 
   __insert__(record) {
-    record.id                 = this.sequenceNo;
-    this.table[record.id - 1] = record.getData();
+    record.__id                 = this.sequenceNo;
+    this.table[record.__id - 1] = record.toObject();
     this.__incrementSequence__(record);
   };
 
   __update__(record) {
-    this.table[record.id - 1] = record.getData();
+    this.table[record.__id - 1] = record.toObject();
   };
 
   __delete__(record) {
     var table = this.table;
-    var index = _.findIndex( table, {id: record.id} );
+    var index = _.findIndex( table, {__id: record.__id} );
     table.splice(index, 1);
   };
 
   // シーケンス番号
   __incrementSequence__(record) {
     var sqc        = LeapsDatabase.tables[LeapsDatabase.sequenceTableName(this.tableName)];
-    sqc.sequenceNo = record.id + 1;
+    sqc.sequenceNo = record.__id + 1;
   };
 };
 
@@ -175,8 +188,8 @@ class LeapsModelCriteria {
     return _.map( dataList, (data)=>{return this.castModel(data)} )
   };
 
-  static find(id) {
-    var record = this.db().findById(id);
+  static find(__id) {
+    var record = this.db().findById(__id);
     return record ? this.castModel(record) : null
   };
 
@@ -188,17 +201,60 @@ class LeapsModelCriteria {
 
 
 
+class LeapsRoute {
+  constructor(model, pathString) {
+    this.model = model;
+    this.path  = pathString;
+  };
+
+  get indexPath() {
+    return this.__staticPath__()
+  };
+
+  get showPath() {
+    return this.__dynamicPath__()
+  };
+
+//***************** __privateMethods__ *****************//
+  __staticPath__() {
+    return this.path.replace(/\{.+\}|\/\{.+\}/, "")
+  };
+
+  __dynamicPath__() {
+    return this.path.replace(/\{.+?\}/g, (match)=>{
+      var keyName = match.replace(/\{|\}/g, "");
+      if(_.has(this.model.toObject(), keyName)) {
+        return this.model[keyName]
+      } else {
+        return null
+      }
+    })
+  };
+};
+
+
 
 // 直接親子関係には無いが、es6は多重継承をサポートしてないようなので
 // 処理の切り分けのためにクラスを分けて記述する
 class LeapsModelRequest extends LeapsModelCriteria {
-  // overrideして使う
-  static getResource() {
+
+//***************** instanceMethods *****************//
+  routing() {
+    return new LeapsRoute(this, this.constructor.resourcePath())
+  };
+
+  show() {
+    return LeapsHttpRequest.show(this)
+  };
+
+//***************** classMethods *****************//
+  static routing() {
+    return new LeapsRoute(null, this.resourcePath())
   };
 
   static index() {
     return LeapsHttpRequest.index(this)
-  }
+  };
 }
 
 
@@ -223,7 +279,7 @@ class LeapsModel extends LeapsModelRequest {
     return this.modelClass.db().destroy(this)
   };
 
-  getData() {
+  toObject() {
     return this.__mergeProperties__({}, this)
   };
 
@@ -274,7 +330,7 @@ class LeapsModel extends LeapsModelRequest {
   __getProperties__() {
     return _.extend(
       {
-        id: null
+        __id: null
       },
       this.modelClass.properties()
     )

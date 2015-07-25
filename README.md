@@ -68,15 +68,16 @@ users.length // 2
 
 ## Ajax Tutorial
 
-modelにresourceを定義する
+### modelにresourceを定義する
 ```
 class SampleUserModel extends LeapsModel {
   static getResource() {
-    return '/users.json'
+    return '/users/{id}.json'
   };
 
   static properties() {
     return {
+      id:          null,
       name:        "",
       age:         null,
       admin:       false
@@ -85,7 +86,15 @@ class SampleUserModel extends LeapsModel {
 };
 ```
 
-一覧を取得する(getリクエスト)
+上記の例では`'/users/{id}.json'`の`{id}`のように、動的に変化するURLを定義します。
+`{id}`はmodelオブジェクトにある同一名称のpropertyを利用し、エンドポイントを作成します。
+リソースのエンドポイントを確認するには`.routing()`を呼び出します。
+
+```
+SampleUserModel().routing().indexPath // /users.json
+```
+
+### 一覧を取得する(getリクエスト)
 ```
 SampleUserModel.index()
 ```
@@ -97,6 +106,29 @@ var promise = SampleUserModel.index()
 promise.then(function(data){ // [SampleUserModel, SampleUserModel, ..., SampleUserModel]
   // 受け取った情報を一括保存する
   SampleUserModel.insert(data);
+
+}).catch(function(error){
+  console.log(error)
+
+});
+```
+
+### 単一のリソースを取得する(getリクエスト)
+```
+var user = new SampleUserModel({id: 1})
+```
+
+リソースのエンドポイントを確認
+```
+user.routing().indexPath // /users/1.json
+```
+
+Promiseを使ってレスポンスを受け取る
+```
+var promise = user.show()
+
+promise.then(function(data){ // [SampleUserModel, SampleUserModel, ..., SampleUserModel]
+  console.log(data) // SampleUserModel
 
 }).catch(function(error){
   console.log(error)

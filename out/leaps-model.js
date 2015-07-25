@@ -52,7 +52,20 @@ var LeapsHttpRequest = (function () {
             return modelClass.castModel(d);
           });
         }, function (xhr) {
-          xhr.open("GET", modelClass.getResource());
+          xhr.open("GET", modelClass.routing().indexPath);
+          xhr.send();
+        });
+
+        return deferred.promise;
+      }
+    },
+    show: {
+      value: function show(model, conditions) {
+
+        var deferred = this.xhrRequest(function (data) {
+          return model.constructor.castModel(data);
+        }, function (xhr) {
+          xhr.open("GET", model.routing().showPath);
           xhr.send();
         });
 
@@ -146,7 +159,7 @@ var LeapsDatabase = (function () {
     destroy: {
       value: function destroy(record) {
         try {
-          var deleteTargetRecord = this.findById(record.id);
+          var deleteTargetRecord = this.findById(record.__id);
 
           if (!_.isEmpty(deleteTargetRecord)) {
             this.__delete__(deleteTargetRecord);
@@ -162,8 +175,8 @@ var LeapsDatabase = (function () {
       }
     },
     findById: {
-      value: function findById(id) {
-        return _.findWhere(this.table, { id: id });
+      value: function findById(__id) {
+        return _.findWhere(this.table, { __id: __id });
       }
     },
     where: {
@@ -188,25 +201,25 @@ var LeapsDatabase = (function () {
       // 既に存在するレコードかどうかを調べる
 
       value: function __isNewRecord__(newRecord) {
-        return _.isEmpty(this.findById(newRecord.id));
+        return _.isEmpty(this.findById(newRecord.__id));
       }
     },
     __insert__: {
       value: function __insert__(record) {
-        record.id = this.sequenceNo;
-        this.table[record.id - 1] = record.getData();
+        record.__id = this.sequenceNo;
+        this.table[record.__id - 1] = record.toObject();
         this.__incrementSequence__(record);
       }
     },
     __update__: {
       value: function __update__(record) {
-        this.table[record.id - 1] = record.getData();
+        this.table[record.__id - 1] = record.toObject();
       }
     },
     __delete__: {
       value: function __delete__(record) {
         var table = this.table;
-        var index = _.findIndex(table, { id: record.id });
+        var index = _.findIndex(table, { __id: record.__id });
         table.splice(index, 1);
       }
     },
@@ -216,7 +229,7 @@ var LeapsDatabase = (function () {
 
       value: function __incrementSequence__(record) {
         var sqc = LeapsDatabase.tables[LeapsDatabase.sequenceTableName(this.tableName)];
-        sqc.sequenceNo = record.id + 1;
+        sqc.sequenceNo = record.__id + 1;
       }
     }
   }, {
@@ -264,8 +277,8 @@ var LeapsModelCriteria = (function () {
       }
     },
     find: {
-      value: function find(id) {
-        var record = this.db().findById(id);
+      value: function find(__id) {
+        var record = this.db().findById(__id);
         return record ? this.castModel(record) : null;
       }
     },
@@ -285,6 +298,54 @@ var LeapsModelCriteria = (function () {
 
 ;
 
+var LeapsRoute = (function () {
+  function LeapsRoute(model, pathString) {
+    _classCallCheck(this, LeapsRoute);
+
+    this.model = model;
+    this.path = pathString;
+  }
+
+  _createClass(LeapsRoute, {
+    indexPath: {
+      get: function () {
+        return this.__staticPath__();
+      }
+    },
+    showPath: {
+      get: function () {
+        return this.__dynamicPath__();
+      }
+    },
+    __staticPath__: {
+
+      //***************** __privateMethods__ *****************//
+
+      value: function __staticPath__() {
+        return this.path.replace(/\{.+\}|\/\{.+\}/, "");
+      }
+    },
+    __dynamicPath__: {
+      value: function __dynamicPath__() {
+        var _this = this;
+
+        return this.path.replace(/\{.+?\}/g, function (match) {
+          var keyName = match.replace(/\{|\}/g, "");
+          if (_.has(_this.model.toObject(), keyName)) {
+            return _this.model[keyName];
+          } else {
+            return null;
+          }
+        });
+      }
+    }
+  });
+
+  return LeapsRoute;
+})();
+
+;
+
 // 直接親子関係には無いが、es6は多重継承をサポートしてないようなので
 // 処理の切り分けのためにクラスを分けて記述する
 
@@ -299,11 +360,28 @@ var LeapsModelRequest = (function (_LeapsModelCriteria) {
 
   _inherits(LeapsModelRequest, _LeapsModelCriteria);
 
-  _createClass(LeapsModelRequest, null, {
-    getResource: {
-      // overrideして使う
+  _createClass(LeapsModelRequest, {
+    routing: {
 
-      value: function getResource() {}
+      //***************** instanceMethods *****************//
+
+      value: function routing() {
+        return new LeapsRoute(this, this.constructor.resourcePath());
+      }
+    },
+    show: {
+      value: function show() {
+        return LeapsHttpRequest.show(this);
+      }
+    }
+  }, {
+    routing: {
+
+      //***************** classMethods *****************//
+
+      value: function routing() {
+        return new LeapsRoute(null, this.resourcePath());
+      }
     },
     index: {
       value: function index() {
@@ -342,8 +420,8 @@ var LeapsModel = (function (_LeapsModelRequest) {
         return this.modelClass.db().destroy(this);
       }
     },
-    getData: {
-      value: function getData() {
+    toObject: {
+      value: function toObject() {
         return this.__mergeProperties__({}, this);
       }
     },
@@ -376,7 +454,7 @@ var LeapsModel = (function (_LeapsModelRequest) {
 
       value: function __getProperties__() {
         return _.extend({
-          id: null
+          __id: null
         }, this.modelClass.properties());
       }
     }
