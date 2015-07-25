@@ -260,12 +260,12 @@ var LeapsDatabase = (function () {
 
 // 検索周りの処理をまとめたい
 
-var LeapsModelCriteria = (function () {
-  function LeapsModelCriteria() {
-    _classCallCheck(this, LeapsModelCriteria);
+var LeapsCriteria = (function () {
+  function LeapsCriteria() {
+    _classCallCheck(this, LeapsCriteria);
   }
 
-  _createClass(LeapsModelCriteria, null, {
+  _createClass(LeapsCriteria, null, {
     all: {
       value: function all() {
         var _this = this;
@@ -293,7 +293,7 @@ var LeapsModelCriteria = (function () {
     }
   });
 
-  return LeapsModelCriteria;
+  return LeapsCriteria;
 })();
 
 ;
@@ -349,16 +349,16 @@ var LeapsRoute = (function () {
 // 直接親子関係には無いが、es6は多重継承をサポートしてないようなので
 // 処理の切り分けのためにクラスを分けて記述する
 
-var LeapsModelRequest = (function (_LeapsModelCriteria) {
+var LeapsModelRequest = (function (_LeapsCriteria) {
   function LeapsModelRequest() {
     _classCallCheck(this, LeapsModelRequest);
 
-    if (_LeapsModelCriteria != null) {
-      _LeapsModelCriteria.apply(this, arguments);
+    if (_LeapsCriteria != null) {
+      _LeapsCriteria.apply(this, arguments);
     }
   }
 
-  _inherits(LeapsModelRequest, _LeapsModelCriteria);
+  _inherits(LeapsModelRequest, _LeapsCriteria);
 
   _createClass(LeapsModelRequest, {
     routing: {
@@ -391,7 +391,7 @@ var LeapsModelRequest = (function (_LeapsModelCriteria) {
   });
 
   return LeapsModelRequest;
-})(LeapsModelCriteria);
+})(LeapsCriteria);
 
 var LeapsModel = (function (_LeapsModelRequest) {
   function LeapsModel(data) {
