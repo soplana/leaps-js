@@ -94,7 +94,11 @@ var LeapsModel = (function () {
     },
     where: {
       value: function where(conditions) {
-        return this.db().where(conditions);
+        var _this = this;
+
+        return _.map(this.db().where(conditions), function (data) {
+          return _this.castModel(data);
+        });
       }
     },
     db: {

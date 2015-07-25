@@ -36,7 +36,7 @@ class LeapsModel {
   };
 
   static where(conditions) {
-    return this.db().where(conditions);
+    return _.map( this.db().where(conditions), (data)=>{return this.castModel(data)} )
   };
 
   static db() {

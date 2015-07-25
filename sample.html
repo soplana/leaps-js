@@ -28,7 +28,7 @@
         // delete
         console.log("delete------------")
         _.each([1,2,3,4,5], function(i){
-          new SampleUserModel({name: "soplana", age: i*10}).save()
+          new SampleUserModel({name: "azunyan", age: i*10}).save()
         })
         var user = SampleUserModel.find(3)
         console.log( user.destroy() ) //=> true
@@ -43,6 +43,7 @@
         var users = SampleUserModel.where({age: 30})
         console.log( users )
         console.log( users.length )
+        console.log( SampleUserModel.where({name: "azunyan", age: 30}) )
 
       })
     </script>
