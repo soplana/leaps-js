@@ -1,133 +1,108 @@
 "use strict";
 
+var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+
 var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
 var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-var LeapsModel = (function () {
-  function LeapsModel(data) {
-    _classCallCheck(this, LeapsModel);
+var LeapsDeferred = (function () {
+  function LeapsDeferred() {
+    var _this = this;
 
-    this.modelClass = this.constructor;
+    _classCallCheck(this, LeapsDeferred);
 
-    // propertyとしてオブジェクトに生えるものと
-    // recordとして保存されるオブジェクトを切り離したい
-    this.__createProperties__(data);
+    this.promise = new Promise(function (resolve, reject) {
+      _this._resolve = resolve;
+      _this._reject = reject;
+    });
   }
 
-  _createClass(LeapsModel, {
-    save: {
-
-      //***************** instanceMethods *****************//
-
-      value: function save() {
-        return this.modelClass.db().insert(this);
+  _createClass(LeapsDeferred, {
+    resolve: {
+      value: function resolve(value) {
+        this._resolve(value);
       }
     },
-    destroy: {
-      value: function destroy() {
-        return this.modelClass.db().destroy(this);
-      }
-    },
-    getData: {
-      value: function getData() {
-        return this.__mergeProperties__({}, this);
-      }
-    },
-    __createProperties__: {
-
-      //***************** __privateMethods__ *****************//
-
-      value: function __createProperties__(data) {
-        this.__mergeProperties__(this, data);
-      }
-    },
-    __mergeProperties__: {
-
-      // propertyとして存在するものだけをコピーする
-
-      value: function __mergeProperties__(newData, originData) {
-        var _this = this;
-
-        _.each(originData, function (value, key) {
-          if (_.indexOf(_.keys(_this.__getProperties__()), key) != -1) {
-            newData[key] = value;
-          };
-        });
-        return newData;
-      }
-    },
-    __getProperties__: {
-
-      // 内部的にpropertiesを参照するときはこれを使う
-
-      value: function __getProperties__() {
-        return _.extend({
-          id: null
-        }, this.modelClass.properties());
-      }
-    }
-  }, {
-    all: {
-
-      //***************** classMethods *****************//
-
-      value: function all() {
-        var _this = this;
-
-        var dataList = LeapsDatabase.selectAll(this.name);
-        return _.map(dataList, function (data) {
-          return _this.castModel(data);
-        });
-      }
-    },
-    find: {
-      value: function find(id) {
-        var record = this.db().findById(id);
-        return record ? this.castModel(record) : null;
-      }
-    },
-    setUp: {
-      value: function setUp() {
-        LeapsDatabase.createDatabase();
-      }
-    },
-    where: {
-      value: function where(conditions) {
-        var _this = this;
-
-        return _.map(this.db().where(conditions), function (data) {
-          return _this.castModel(data);
-        });
-      }
-    },
-    db: {
-      value: function db() {
-        if (_.isEmpty(this.table)) {
-          this.table = new LeapsDatabase(this.name);
-        };
-        return this.table;
-      }
-    },
-    castModel: {
-      value: function castModel(data) {
-        return new this(data);
-      }
-    },
-    properties: {
-
-      // overrideして使う
-
-      value: function properties() {
-        return {};
+    reject: {
+      value: function reject(reason) {
+        this._reject(reason);
       }
     }
   });
 
-  return LeapsModel;
+  return LeapsDeferred;
 })();
 
 ;
+
+// リクエスト周りの処理
+
+var LeapsHttpRequest = (function () {
+  function LeapsHttpRequest() {
+    _classCallCheck(this, LeapsHttpRequest);
+  }
+
+  _createClass(LeapsHttpRequest, null, {
+    get: {
+      value: function get(modelClass) {
+
+        var deferred = this.xhrRequest(modelClass, function (xhr) {
+          xhr.open("GET", modelClass.getResource());
+          xhr.send();
+        });
+
+        return deferred.promise;
+      }
+    },
+    xhrRequest: {
+      value: function xhrRequest(modelClass, callback) {
+        var xhr = this.getXHRObject();
+        var deferred = new LeapsDeferred();
+
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+              var data = _.map(JSON.parse(xhr.responseText), function (d) {
+                return modelClass.castModel(d);
+              });
+              deferred.resolve(data);
+            } else {
+              deferred.reject(xhr.responseText);
+            }
+          }
+        };
+        callback(xhr);
+
+        return deferred;
+      }
+    },
+    getXHRObject: {
+      value: function getXHRObject() {
+        try {
+          return new XMLHttpRequest();
+        } catch (e) {};
+        try {
+          return new ActiveXObject("MSXML2.XMLHTTP.6.0");
+        } catch (e) {};
+        try {
+          return new ActiveXObject("MSXML2.XMLHTTP.3.0");
+        } catch (e) {};
+        try {
+          return new ActiveXObject("MSXML2.XMLHTTP");
+        } catch (e) {};
+        return null;
+      }
+    }
+  });
+
+  return LeapsHttpRequest;
+})();
+
+;
+
+// DB
+// そのうちlocalStrageとか使えるようにしたほうが便利かも
 
 var LeapsDatabase = (function () {
   function LeapsDatabase(tableName) {
@@ -266,6 +241,188 @@ var LeapsDatabase = (function () {
 
   return LeapsDatabase;
 })();
+
+;
+
+// 検索周りの処理をまとめたい
+
+var LeapsModelCriteria = (function () {
+  function LeapsModelCriteria() {
+    _classCallCheck(this, LeapsModelCriteria);
+  }
+
+  _createClass(LeapsModelCriteria, null, {
+    all: {
+      value: function all() {
+        var _this = this;
+
+        var dataList = LeapsDatabase.selectAll(this.name);
+        return _.map(dataList, function (data) {
+          return _this.castModel(data);
+        });
+      }
+    },
+    find: {
+      value: function find(id) {
+        var record = this.db().findById(id);
+        return record ? this.castModel(record) : null;
+      }
+    },
+    where: {
+      value: function where(conditions) {
+        var _this = this;
+
+        return _.map(this.db().where(conditions), function (data) {
+          return _this.castModel(data);
+        });
+      }
+    }
+  });
+
+  return LeapsModelCriteria;
+})();
+
+;
+
+// 直接親子関係には無いが、es6は多重継承をサポートしてないようなので
+// 処理の切り分けのためにクラスを分けて記述する
+
+var LeapsModelRequest = (function (_LeapsModelCriteria) {
+  function LeapsModelRequest() {
+    _classCallCheck(this, LeapsModelRequest);
+
+    if (_LeapsModelCriteria != null) {
+      _LeapsModelCriteria.apply(this, arguments);
+    }
+  }
+
+  _inherits(LeapsModelRequest, _LeapsModelCriteria);
+
+  _createClass(LeapsModelRequest, null, {
+    getResource: {
+      // overrideして使う
+
+      value: function getResource() {}
+    },
+    get: {
+      value: function get() {
+        return LeapsHttpRequest.get(this);
+      }
+    }
+  });
+
+  return LeapsModelRequest;
+})(LeapsModelCriteria);
+
+var LeapsModel = (function (_LeapsModelRequest) {
+  function LeapsModel(data) {
+    _classCallCheck(this, LeapsModel);
+
+    this.modelClass = this.constructor;
+
+    // propertyとしてオブジェクトに生えるものと
+    // recordとして保存されるオブジェクトを切り離したい
+    this.__createProperties__(data);
+  }
+
+  _inherits(LeapsModel, _LeapsModelRequest);
+
+  _createClass(LeapsModel, {
+    save: {
+
+      //***************** instanceMethods *****************//
+
+      value: function save() {
+        return this.modelClass.db().insert(this);
+      }
+    },
+    destroy: {
+      value: function destroy() {
+        return this.modelClass.db().destroy(this);
+      }
+    },
+    getData: {
+      value: function getData() {
+        return this.__mergeProperties__({}, this);
+      }
+    },
+    __createProperties__: {
+
+      //***************** __privateMethods__ *****************//
+
+      value: function __createProperties__(data) {
+        this.__mergeProperties__(this, data);
+      }
+    },
+    __mergeProperties__: {
+
+      // propertyとして存在するものだけをコピーする
+
+      value: function __mergeProperties__(newData, originData) {
+        var _this = this;
+
+        _.each(originData, function (value, key) {
+          if (_.indexOf(_.keys(_this.__getProperties__()), key) != -1) {
+            newData[key] = value;
+          };
+        });
+        return newData;
+      }
+    },
+    __getProperties__: {
+
+      // 内部的にpropertiesを参照するときはこれを使う
+
+      value: function __getProperties__() {
+        return _.extend({
+          id: null
+        }, this.modelClass.properties());
+      }
+    }
+  }, {
+    insert: {
+
+      //***************** classMethods *****************//
+
+      // 失敗時にロールバックする処理ほしい気がする
+
+      value: function insert(modelList) {
+        _.each(modelList, function (d) {
+          d.save();
+        });
+        return modelList;
+      }
+    },
+    setUp: {
+      value: function setUp() {
+        LeapsDatabase.createDatabase();
+      }
+    },
+    db: {
+      value: function db() {
+        if (_.isEmpty(this.table)) {
+          this.table = new LeapsDatabase(this.name);
+        };
+        return this.table;
+      }
+    },
+    castModel: {
+      value: function castModel(data) {
+        return new this(data);
+      }
+    },
+    properties: {
+
+      // overrideして使う
+
+      value: function properties() {
+        return {};
+      }
+    }
+  });
+
+  return LeapsModel;
+})(LeapsModelRequest);
 
 ;
 

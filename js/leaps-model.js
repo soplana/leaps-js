@@ -1,86 +1,61 @@
-class LeapsModel {
-  constructor(data) {
-    this.modelClass = this.constructor;
-
-    // propertyとしてオブジェクトに生えるものと
-    // recordとして保存されるオブジェクトを切り離したい
-    this.__createProperties__(data);
+class LeapsDeferred {
+  constructor() {
+    this.promise = new Promise((resolve, reject)=>{
+        this._resolve = resolve;
+        this._reject  = reject;
+    })
   };
 
-//***************** instanceMethods *****************//
-  save() {
-    return this.modelClass.db().insert(this)
-  };
+  resolve(value) { this._resolve(value) };
+  reject(reason) { this._reject(reason) };
+};
 
-  destroy() {
-    return this.modelClass.db().destroy(this)
-  };
+// リクエスト周りの処理
+class LeapsHttpRequest {
+  static get(modelClass) {
 
-  getData() {
-    return this.__mergeProperties__({}, this)
-  };
-
-//***************** classMethods *****************//
-  static all() {
-    var dataList = LeapsDatabase.selectAll(this.name);
-    return _.map( dataList, (data)=>{return this.castModel(data)} )
-  };
-
-  static find(id) {
-    var record = this.db().findById(id);
-    return record ? this.castModel(record) : null
-  };
-
-  static setUp() {
-    LeapsDatabase.createDatabase();
-  };
-
-  static where(conditions) {
-    return _.map( this.db().where(conditions), (data)=>{return this.castModel(data)} )
-  };
-
-  static db() {
-    if(_.isEmpty(this.table)) {
-      this.table = new LeapsDatabase(this.name);
-    };
-    return this.table
-  };
-
-  static castModel(data) {
-    return new this(data)
-  };
-
-  // overrideして使う
-  static properties() {
-    return {}
-  };
-
-//***************** __privateMethods__ *****************//
-  __createProperties__(data) {
-    this.__mergeProperties__(this, data);
-  };
-
-  // propertyとして存在するものだけをコピーする
-  __mergeProperties__(newData, originData) {
-    _.each(originData, (value, key)=>{
-      if( _.indexOf(_.keys(this.__getProperties__()), key) != -1 ) {
-        newData[key] = value;
-      };
+    var deferred = this.xhrRequest(modelClass, function(xhr){
+      xhr.open("GET", modelClass.getResource());
+      xhr.send()
     });
-    return newData;
+
+    return deferred.promise
   };
 
-  // 内部的にpropertiesを参照するときはこれを使う
-  __getProperties__() {
-    return _.extend(
-      {
-        id: null
-      },
-      this.modelClass.properties()
-    )
+  static xhrRequest(modelClass, callback) {
+    var xhr      = this.getXHRObject();
+    var deferred = new LeapsDeferred();
+
+    xhr.onreadystatechange = function (){
+      if (xhr.readyState === 4) {
+        if(xhr.status === 200){
+          var data = _.map(JSON.parse(xhr.responseText), (d)=>{return modelClass.castModel(d)});
+          deferred.resolve(data);
+        } else {
+          deferred.reject(xhr.responseText);
+        }
+      }
+    };
+    callback(xhr);
+
+    return deferred
+  }
+
+  static getXHRObject(){
+    try{ return new XMLHttpRequest() }catch(e){};
+    try{ return new ActiveXObject('MSXML2.XMLHTTP.6.0') }catch(e){};
+    try{ return new ActiveXObject('MSXML2.XMLHTTP.3.0') }catch(e){};
+    try{ return new ActiveXObject('MSXML2.XMLHTTP')     }catch(e){};
+    return null;
   };
 };
 
+
+
+
+
+// DB
+// そのうちlocalStrageとか使えるようにしたほうが便利かも
 class LeapsDatabase {
   get sequenceNo() {
     return LeapsDatabase.tables[LeapsDatabase.sequenceTableName(this.tableName)].sequenceNo
@@ -184,6 +159,123 @@ class LeapsDatabase {
   __incrementSequence__(record) {
     var sqc        = LeapsDatabase.tables[LeapsDatabase.sequenceTableName(this.tableName)];
     sqc.sequenceNo = record.id + 1;
+  };
+};
+
+
+
+
+
+// 検索周りの処理をまとめたい
+class LeapsModelCriteria {
+  static all() {
+    var dataList = LeapsDatabase.selectAll(this.name);
+    return _.map( dataList, (data)=>{return this.castModel(data)} )
+  };
+
+  static find(id) {
+    var record = this.db().findById(id);
+    return record ? this.castModel(record) : null
+  };
+
+  static where(conditions) {
+    return _.map( this.db().where(conditions), (data)=>{return this.castModel(data)} )
+  };
+};
+
+
+
+
+
+// 直接親子関係には無いが、es6は多重継承をサポートしてないようなので
+// 処理の切り分けのためにクラスを分けて記述する
+class LeapsModelRequest extends LeapsModelCriteria {
+  // overrideして使う
+  static getResource() {
+  };
+
+  static get() {
+    return LeapsHttpRequest.get(this)
+  }
+}
+
+
+
+
+
+class LeapsModel extends LeapsModelRequest {
+  constructor(data) {
+    this.modelClass = this.constructor;
+
+    // propertyとしてオブジェクトに生えるものと
+    // recordとして保存されるオブジェクトを切り離したい
+    this.__createProperties__(data);
+  };
+
+//***************** instanceMethods *****************//
+  save() {
+    return this.modelClass.db().insert(this)
+  };
+
+  destroy() {
+    return this.modelClass.db().destroy(this)
+  };
+
+  getData() {
+    return this.__mergeProperties__({}, this)
+  };
+
+//***************** classMethods *****************//
+
+  // 失敗時にロールバックする処理ほしい気がする
+  static insert(modelList) {
+    _.each(modelList, (d)=>{ d.save() });
+    return modelList
+  };
+
+  static setUp() {
+    LeapsDatabase.createDatabase();
+  };
+
+  static db() {
+    if(_.isEmpty(this.table)) {
+      this.table = new LeapsDatabase(this.name);
+    };
+    return this.table
+  };
+
+  static castModel(data) {
+    return new this(data)
+  };
+
+  // overrideして使う
+  static properties() {
+    return {}
+  };
+
+//***************** __privateMethods__ *****************//
+  __createProperties__(data) {
+    this.__mergeProperties__(this, data);
+  };
+
+  // propertyとして存在するものだけをコピーする
+  __mergeProperties__(newData, originData) {
+    _.each(originData, (value, key)=>{
+      if( _.indexOf(_.keys(this.__getProperties__()), key) != -1 ) {
+        newData[key] = value;
+      };
+    });
+    return newData;
+  };
+
+  // 内部的にpropertiesを参照するときはこれを使う
+  __getProperties__() {
+    return _.extend(
+      {
+        id: null
+      },
+      this.modelClass.properties()
+    )
   };
 };
 

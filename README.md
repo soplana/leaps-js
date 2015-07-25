@@ -65,3 +65,41 @@ new SampleUserModel({name: "c", age: 20}).save()
 var users = SampleUserModel.where({age: 10})
 users.length // 2
 ```
+
+## Ajax Tutorial
+
+modelにresourceを定義する
+```
+class SampleUserModel extends LeapsModel {
+  static getResource() {
+    return '/users.json'
+  };
+
+  static properties() {
+    return {
+      name:        "",
+      age:         null,
+      admin:       false
+    }
+  }
+};
+```
+
+getリクエストを出す
+```
+SampleUserModel.get()
+```
+
+Promiseを使ってレスポンスを受け取る
+```
+var promise = SampleUserModel.get()
+
+promise.then(function(data){ // [SampleUserModel, SampleUserModel, ..., SampleUserModel]
+  // 受け取った情報を一括保存する
+  SampleUserModel.insert(data);
+
+}).catch(function(error){
+  console.log(error)
+
+});
+```
