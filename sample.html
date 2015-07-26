@@ -8,6 +8,10 @@
     <script type="text/javascript" src='./src/sample-model.js'></script>
     <script>
       $(function(){
+        LeapsModel.setUp({
+          database: "sampleModel"
+        });
+
         var user = new SampleUserModel({name: "soplana", age: 30});
         user.admin = true
         user.save() //=> true
@@ -30,7 +34,7 @@
         _.each([1,2,3,4,5], function(i){
           new SampleUserModel({name: "azunyan", age: i*10}).save()
         })
-        var user = SampleUserModel.find(3)
+        var user = SampleUserModel.all()[1]
         console.log( user.destroy() ) //=> true
         console.log( SampleUserModel.all() ) // null
         console.log( SampleUserModel.find(3) ) // null

@@ -1,5 +1,6 @@
 //=require leaps-deferred.js
 //=require leaps-http-request.js
+//=require leaps-storage.js
 //=require leaps-database.js
 //=require leaps-criteria.js
 //=require leaps-route.js
@@ -35,8 +36,8 @@ class LeapsModel extends LeapsModelRequest {
     return modelList
   };
 
-  static setUp() {
-    LeapsDatabase.createDatabase();
+  static setUp(options) {
+    LeapsDatabase.createDatabase(options);
   };
 
   static db() {
@@ -80,5 +81,3 @@ class LeapsModel extends LeapsModelRequest {
     )
   };
 };
-
-LeapsModel.setUp();

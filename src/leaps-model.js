@@ -115,6 +115,71 @@ var LeapsHttpRequest = (function () {
 
 ;
 
+var LeapsStorage = (function () {
+  function LeapsStorage() {
+    _classCallCheck(this, LeapsStorage);
+  }
+
+  _createClass(LeapsStorage, null, {
+    clear: {
+      value: function clear(databaseName) {
+        if (!_.isEmpty(localStorage[this.__storageName__(databaseName)])) {
+          localStorage.removeItem(this.__storageName__(databaseName));
+        };
+      }
+    },
+    setUp: {
+      value: function setUp(databaseName) {
+        this.storage = localStorage;
+        this.appStorageName = this.__storageName__(databaseName);
+
+        if (_.isEmpty(this.storage[this.appStorageName])) {
+          // 初期化
+          this.storage[this.appStorageName] = JSON.stringify({});
+        };
+      }
+    },
+    load: {
+      value: function load() {
+        return JSON.parse(this.appStorage());
+      }
+    },
+    hasTable: {
+      value: function hasTable(tableName) {
+        return _.has(this.load(), tableName);
+      }
+    },
+    createTable: {
+      value: function createTable(tableName) {
+        this.persistence(tableName, []);
+      }
+    },
+    appStorage: {
+      value: function appStorage() {
+        return this.storage[this.appStorageName];
+      }
+    },
+    persistence: {
+      value: function persistence(tableName, data) {
+        var newStorage = this.load();
+        newStorage[tableName] = data;
+
+        this.storage[this.appStorageName] = JSON.stringify(newStorage);
+      }
+    },
+    __storageName__: {
+
+      //***************** __privateMethods__ *****************//
+
+      value: function __storageName__(name) {
+        return "leapsStorage_" + name;
+      }
+    }
+  });
+
+  return LeapsStorage;
+})();
+
 // DB
 // そのうちlocalStrageとか使えるようにしたほうが便利かも
 
@@ -129,7 +194,7 @@ var LeapsDatabase = (function () {
   _createClass(LeapsDatabase, {
     sequenceNo: {
       get: function () {
-        return LeapsDatabase.tables[LeapsDatabase.sequenceTableName(this.tableName)].sequenceNo;
+        return LeapsDatabase.tables[LeapsDatabase.sequenceTableName(this.tableName)][0].sequenceNo;
       }
     },
     table: {
@@ -191,8 +256,26 @@ var LeapsDatabase = (function () {
 
       value: function __createTables__() {
         if (_.isEmpty(this.table)) {
-          LeapsDatabase.tables[this.tableName] = [];
-          LeapsDatabase.tables[LeapsDatabase.sequenceTableName(this.tableName)] = { sequenceNo: 1 };
+          var sqTableName = LeapsDatabase.sequenceTableName(this.tableName),
+              initData = { sequenceNo: 1 };
+
+          if (this.constructor.options.persist) {
+            if (!LeapsStorage.hasTable(this.tableName)) {
+              LeapsStorage.createTable(this.tableName);
+            };
+
+            if (!LeapsStorage.hasTable(sqTableName)) {
+              LeapsStorage.createTable(sqTableName);
+              LeapsStorage.persistence(sqTableName, [initData]);
+            };
+
+            // localStrageに存在すればそれをロードする
+            LeapsDatabase.tables[this.tableName] = LeapsStorage.load()[this.tableName];
+            LeapsDatabase.tables[sqTableName] = LeapsStorage.load()[sqTableName];
+          } else {
+            LeapsDatabase.tables[this.tableName] = [];
+            LeapsDatabase.tables[sqTableName] = [initData];
+          }
         };
       }
     },
@@ -207,20 +290,27 @@ var LeapsDatabase = (function () {
     __insert__: {
       value: function __insert__(record) {
         record.__id = this.sequenceNo;
-        this.table[record.__id - 1] = record.toObject();
+        this.table.push(record.toObject());
         this.__incrementSequence__(record);
+        if (this.constructor.options.persist) this.__persistenceTable__();
       }
     },
     __update__: {
       value: function __update__(record) {
         this.table[record.__id - 1] = record.toObject();
+        if (this.constructor.options.persist) this.__persistenceTable__();
       }
     },
     __delete__: {
       value: function __delete__(record) {
-        var table = this.table;
-        var index = _.findIndex(table, { __id: record.__id });
-        table.splice(index, 1);
+        var index = _.findIndex(this.table, { __id: record.__id });
+        this.table.splice(index, 1);
+        if (this.constructor.options.persist) this.__persistenceTable__();
+      }
+    },
+    __persistenceTable__: {
+      value: function __persistenceTable__() {
+        LeapsStorage.persistence(this.tableName, this.table);
       }
     },
     __incrementSequence__: {
@@ -229,7 +319,11 @@ var LeapsDatabase = (function () {
 
       value: function __incrementSequence__(record) {
         var sqc = LeapsDatabase.tables[LeapsDatabase.sequenceTableName(this.tableName)];
-        sqc.sequenceNo = record.__id + 1;
+        sqc[0].sequenceNo = record.__id + 1;
+
+        if (this.constructor.options.persist) {
+          LeapsStorage.persistence(LeapsDatabase.sequenceTableName(this.tableName), sqc);
+        }
       }
     }
   }, {
@@ -242,13 +336,35 @@ var LeapsDatabase = (function () {
       }
     },
     createDatabase: {
-      value: function createDatabase() {
-        this.tables = {};
+      value: function createDatabase(options) {
+        this.options = _.extend(this.defaultOptions(), options);
+
+        // 初期化
+        if (this.options.drop) LeapsStorage.clear(options.database);
+
+        // 永続化するかどうか
+        var storage = null;
+        if (this.options.persist) {
+          LeapsStorage.setUp(this.options.database);
+          storage = LeapsStorage.load();
+        } else {
+          storage = {};
+        };
+
+        this.tables = storage;
       }
     },
     sequenceTableName: {
       value: function sequenceTableName(tableName) {
         return "" + tableName + "Sequence";
+      }
+    },
+    defaultOptions: {
+      value: function defaultOptions() {
+        return {
+          drop: false,
+          persist: true
+        };
       }
     }
   });
@@ -473,8 +589,8 @@ var LeapsModel = (function (_LeapsModelRequest) {
       }
     },
     setUp: {
-      value: function setUp() {
-        LeapsDatabase.createDatabase();
+      value: function setUp(options) {
+        LeapsDatabase.createDatabase(options);
       }
     },
     db: {
@@ -504,5 +620,3 @@ var LeapsModel = (function (_LeapsModelRequest) {
 })(LeapsModelRequest);
 
 ;
-
-LeapsModel.setUp();

@@ -2,7 +2,7 @@
 // そのうちlocalStrageとか使えるようにしたほうが便利かも
 class LeapsDatabase {
   get sequenceNo() {
-    return LeapsDatabase.tables[LeapsDatabase.sequenceTableName(this.tableName)].sequenceNo
+    return LeapsDatabase.tables[LeapsDatabase.sequenceTableName(this.tableName)][0].sequenceNo
   };
 
   get table() {
@@ -60,21 +60,60 @@ class LeapsDatabase {
     return LeapsDatabase.tables[tableName]
   };
 
-  static createDatabase(){
-    this.tables = {};
+  static createDatabase(options){
+    this.options = _.extend(this.defaultOptions(), options);
+
+    // 初期化
+    if( this.options.drop ) LeapsStorage.clear(options.database);
+
+    // 永続化するかどうか
+    var storage = null;
+    if(this.options.persist) {
+      LeapsStorage.setUp(this.options.database);
+      storage = LeapsStorage.load();
+    } else {
+      storage = {};
+    };
+
+    this.tables = storage;
   };
 
   static sequenceTableName(tableName) {
     return `${tableName}Sequence`
   };
 
+  static defaultOptions() {
+    return {
+      drop:    false,
+      persist: true
+    }
+  };
+
 //***************** __privateMethods__ *****************//
   // tableの作成
   __createTables__() {
     if( _.isEmpty(this.table) ){
-      LeapsDatabase.tables[this.tableName] = [];
-      LeapsDatabase.tables[LeapsDatabase.sequenceTableName(this.tableName)] =
-        {sequenceNo: 1};
+      var sqTableName = LeapsDatabase.sequenceTableName(this.tableName),
+          initData    = {sequenceNo: 1};
+
+      if(this.constructor.options.persist) {
+        if( !LeapsStorage.hasTable(this.tableName) ){
+          LeapsStorage.createTable(this.tableName);
+        };
+
+        if( !LeapsStorage.hasTable(sqTableName) ){
+          LeapsStorage.createTable(sqTableName);
+          LeapsStorage.persistence(sqTableName, [initData]);
+        };
+
+        // localStrageに存在すればそれをロードする
+        LeapsDatabase.tables[this.tableName] = LeapsStorage.load()[this.tableName];
+        LeapsDatabase.tables[sqTableName]    = LeapsStorage.load()[sqTableName];
+
+      } else {
+        LeapsDatabase.tables[this.tableName] = [];
+        LeapsDatabase.tables[sqTableName]    = [initData];
+      }
     };
   };
 
@@ -85,23 +124,33 @@ class LeapsDatabase {
 
   __insert__(record) {
     record.__id                 = this.sequenceNo;
-    this.table[record.__id - 1] = record.toObject();
+    this.table.push(record.toObject());
     this.__incrementSequence__(record);
+    if(this.constructor.options.persist) this.__persistenceTable__();
   };
 
   __update__(record) {
     this.table[record.__id - 1] = record.toObject();
+    if(this.constructor.options.persist) this.__persistenceTable__();
   };
 
   __delete__(record) {
-    var table = this.table;
-    var index = _.findIndex( table, {__id: record.__id} );
-    table.splice(index, 1);
+    var index = _.findIndex( this.table, {__id: record.__id} );
+    this.table.splice(index, 1);
+    if(this.constructor.options.persist) this.__persistenceTable__();
+  };
+
+  __persistenceTable__() {
+    LeapsStorage.persistence(this.tableName, this.table);
   };
 
   // シーケンス番号
   __incrementSequence__(record) {
     var sqc        = LeapsDatabase.tables[LeapsDatabase.sequenceTableName(this.tableName)];
-    sqc.sequenceNo = record.__id + 1;
+    sqc[0].sequenceNo = record.__id + 1;
+
+    if(this.constructor.options.persist) {
+      LeapsStorage.persistence(LeapsDatabase.sequenceTableName(this.tableName), sqc);
+    }
   };
 };
