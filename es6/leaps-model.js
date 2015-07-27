@@ -36,6 +36,10 @@ class LeapsModel extends LeapsModelRequest {
     return modelList
   };
 
+  static destroyAll() {
+    return this.db().destroyAll()
+  };
+
   static setUp(options) {
     LeapsDatabase.createDatabase(options);
     LeapsHttpRequest.setUp(options.request);

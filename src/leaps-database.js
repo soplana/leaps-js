@@ -33,11 +33,10 @@ var LeapsDatabase = (function () {
       value: function insert(record) {
         try {
           if (this.__isNewRecord__(record)) {
-            this.__insert__(record);
+            return this.__insert__(record);
           } else {
-            this.__update__(record);
+            return this.__update__(record);
           };
-          return true;
         } catch (e) {
           console.log("insert error!");
           console.log(e);
@@ -51,11 +50,23 @@ var LeapsDatabase = (function () {
           var deleteTargetRecord = this.findById(record.__id);
 
           if (!_.isEmpty(deleteTargetRecord)) {
-            this.__delete__(deleteTargetRecord);
-            return true;
+            return this.__delete__(deleteTargetRecord);
           } else {
             return false;
           }
+        } catch (e) {
+          console.log("delete error!");
+          console.log(e);
+          return false;
+        }
+      }
+    },
+    destroyAll: {
+      value: function destroyAll() {
+        try {
+          LeapsStorage.createTable(this.tableName);
+          LeapsDatabase.tables[this.tableName] = [];
+          return true;
         } catch (e) {
           console.log("delete error!");
           console.log(e);
@@ -117,12 +128,22 @@ var LeapsDatabase = (function () {
         this.table.push(record.toObject());
         this.__incrementSequence__(record);
         if (this.constructor.options.persist) this.__persistenceTable__();
+        return true;
       }
     },
     __update__: {
       value: function __update__(record) {
-        this.table[record.__id - 1] = record.toObject();
+        var updateTargetRecord = this.findById(record.__id);
+
+        var index = _.findIndex(this.table, function (data) {
+          if (data.__id === updateTargetRecord.__id) return true;
+        });
+        if (index === -1) {
+          return false;
+        }this.table[index] = record.toObject();
+
         if (this.constructor.options.persist) this.__persistenceTable__();
+        return true;
       }
     },
     __delete__: {
@@ -130,6 +151,7 @@ var LeapsDatabase = (function () {
         var index = _.findIndex(this.table, { __id: record.__id });
         this.table.splice(index, 1);
         if (this.constructor.options.persist) this.__persistenceTable__();
+        return true;
       }
     },
     __persistenceTable__: {

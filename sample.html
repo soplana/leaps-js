@@ -9,12 +9,14 @@
     <script>
       $(function(){
         LeapsModel.setUp({
-          database: "sampleModel"
+          database: "sampleModel",
+          drop:     true
         });
 
         var user = new SampleUserModel({name: "soplana", age: 30});
         user.admin = true
         user.save() //=> true
+        console.log("id: " + user.__id)
 
         // 全件取得
         console.log( SampleUserModel.all() )   // [SampleUserModel]
@@ -48,6 +50,12 @@
         console.log( users )
         console.log( users.length )
         console.log( SampleUserModel.where({name: "azunyan", age: 30}) )
+
+        // destroyAll
+        console.log("delete all------------")
+        console.log( SampleUserModel.all().length )
+        SampleUserModel.destroyAll()
+        console.log( SampleUserModel.all().length )
       })
     </script>
   </head>
