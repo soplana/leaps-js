@@ -12,6 +12,10 @@ class LeapsRoute {
     return this.__dynamicPath__()
   };
 
+  get updatePath() {
+    return this.__dynamicPath__()
+  };
+
 //***************** __privateMethods__ *****************//
   __staticPath__() {
     return this.path.replace(/\{.+\}|\/\{.+\}/, "")

@@ -33,6 +33,37 @@ var LeapsModelRequest = (function (_LeapsCriteria) {
       value: function show() {
         return LeapsHttpRequest.show(this);
       }
+    },
+    update: {
+      value: function update() {
+        return LeapsHttpRequest.update(this);
+      }
+    },
+    toPostParams: {
+      value: function toPostParams() {
+        var params = [];
+
+        for (var key in this.toObject()) {
+          var value = this.toObject()[key],
+              param = "" + this.constructor.name + "[" + encodeURIComponent(key) + "]=" + encodeURIComponent(value);
+          params.push(param);
+        };
+
+        return params.join("&").replace(/%20/g, "+");
+      }
+    },
+    toParams: {
+      value: function toParams() {
+        var params = [];
+
+        for (var key in this.toObject()) {
+          var value = this.toObject()[key],
+              param = "" + encodeURIComponent(key) + "=" + encodeURIComponent(value);
+          params.push(param);
+        };
+
+        return params.join("&").replace(/%20/g, "+");
+      }
     }
   }, {
     routing: {

@@ -11,6 +11,34 @@ class LeapsModelRequest extends LeapsCriteria {
     return LeapsHttpRequest.show(this)
   };
 
+  update() {
+    return LeapsHttpRequest.update(this)
+  };
+
+  toPostParams() {
+    var params = [];
+
+    for(var key in this.toObject()){
+      var value = this.toObject()[key],
+          param = `${this.constructor.name}[${encodeURIComponent(key)}]=${encodeURIComponent(value)}`;
+      params.push(param);
+    };
+
+    return params.join('&').replace(/%20/g, '+');
+  };
+
+  toParams() {
+    var params = [];
+
+    for(var key in this.toObject()){
+      var value = this.toObject()[key],
+          param = `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+      params.push(param);
+    };
+
+    return params.join('&').replace(/%20/g, '+');
+  };
+
 //***************** classMethods *****************//
   static routing() {
     return new LeapsRoute(null, this.resourcePath())

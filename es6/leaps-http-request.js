@@ -1,26 +1,55 @@
 // リクエスト周りの処理
 class LeapsHttpRequest {
-  static index(modelClass) {
+  static setUp(options) {
+    this.options = _.extend(this.defaultOptions(), (options || {}));
+  };
 
-    var deferred = this.xhrRequest(function(data){
+  static defaultOptions() {
+    return {}
+  };
+
+  static setDefaultHeader(xhr) {
+    _.each(this.options.defaultHeader, (value, key)=>{
+      xhr.setRequestHeader(key, value);
+    });
+    return xhr
+  };
+
+  static index(modelClass) {
+    var deferred = this.xhrRequest((data)=>{
       return _.map(data, (d)=>{return modelClass.castModel(d)});
 
-    }, function(xhr){
+    }, (xhr)=>{
       xhr.open("GET", modelClass.routing().indexPath);
-      xhr.send()
+      xhr = this.setDefaultHeader(xhr);
+      xhr.send();
     });
 
     return deferred.promise
   };
 
   static show(model, conditions) {
-
-    var deferred = this.xhrRequest(function(data){
+    var deferred = this.xhrRequest((data)=>{
       return model.constructor.castModel(data);
 
-    }, function(xhr){
+    }, (xhr)=>{
       xhr.open("GET", model.routing().showPath);
-      xhr.send()
+      xhr = this.setDefaultHeader(xhr);
+      xhr.send();
+    });
+
+    return deferred.promise
+  };
+
+  static update(model, conditions) {
+    var deferred = this.xhrRequest((data)=>{
+      return model.constructor.castModel(data);
+
+    }, (xhr)=>{
+      xhr.open("PUT", model.routing().updatePath, true);
+      xhr = this.setDefaultHeader(xhr);
+      xhr.setRequestHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
+      xhr.send(model.toPostParams());
     });
 
     return deferred.promise

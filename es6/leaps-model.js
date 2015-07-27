@@ -38,6 +38,7 @@ class LeapsModel extends LeapsModelRequest {
 
   static setUp(options) {
     LeapsDatabase.createDatabase(options);
+    LeapsHttpRequest.setUp(options.request);
   };
 
   static db() {

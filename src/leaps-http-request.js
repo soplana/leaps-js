@@ -12,8 +12,27 @@ var LeapsHttpRequest = (function () {
   }
 
   _createClass(LeapsHttpRequest, null, {
+    setUp: {
+      value: function setUp(options) {
+        this.options = _.extend(this.defaultOptions(), options || {});
+      }
+    },
+    defaultOptions: {
+      value: function defaultOptions() {
+        return {};
+      }
+    },
+    setDefaultHeader: {
+      value: function setDefaultHeader(xhr) {
+        _.each(this.options.defaultHeader, function (value, key) {
+          xhr.setRequestHeader(key, value);
+        });
+        return xhr;
+      }
+    },
     index: {
       value: function index(modelClass) {
+        var _this = this;
 
         var deferred = this.xhrRequest(function (data) {
           return _.map(data, function (d) {
@@ -21,6 +40,7 @@ var LeapsHttpRequest = (function () {
           });
         }, function (xhr) {
           xhr.open("GET", modelClass.routing().indexPath);
+          xhr = _this.setDefaultHeader(xhr);
           xhr.send();
         });
 
@@ -29,12 +49,30 @@ var LeapsHttpRequest = (function () {
     },
     show: {
       value: function show(model, conditions) {
+        var _this = this;
 
         var deferred = this.xhrRequest(function (data) {
           return model.constructor.castModel(data);
         }, function (xhr) {
           xhr.open("GET", model.routing().showPath);
+          xhr = _this.setDefaultHeader(xhr);
           xhr.send();
+        });
+
+        return deferred.promise;
+      }
+    },
+    update: {
+      value: function update(model, conditions) {
+        var _this = this;
+
+        var deferred = this.xhrRequest(function (data) {
+          return model.constructor.castModel(data);
+        }, function (xhr) {
+          xhr.open("PUT", model.routing().updatePath, true);
+          xhr = _this.setDefaultHeader(xhr);
+          xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+          xhr.send(model.toPostParams());
         });
 
         return deferred.promise;

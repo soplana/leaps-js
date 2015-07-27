@@ -23,6 +23,11 @@ var LeapsRoute = (function () {
         return this.__dynamicPath__();
       }
     },
+    updatePath: {
+      get: function () {
+        return this.__dynamicPath__();
+      }
+    },
     __staticPath__: {
 
       //***************** __privateMethods__ *****************//

@@ -33,7 +33,6 @@ class SampleUserModel extends LeapsModel {
 }
 ```
 
-つかう
 `setUp`を呼び出し、オプションをわたします。
 必須オプションは`database`のみです。DB名をわたします。
 ```
@@ -109,6 +108,18 @@ class SampleUserModel extends LeapsModel {
 };
 ```
 
+例えば共通のHttpHeaderとして`X-CSRF-Token`をRequestに含めたい場合は、`request: { defaultHeader: {...}}`オプションに設定します。
+```
+LeapsModel.setUp({
+  database: 'sample',
+  request: {
+    defaultHeader: {
+      'X-CSRF-Token' : $('meta[name="csrf-token"]').attr('content')
+    }
+  }
+});
+```
+
 上記の例では`'/users/{id}.json'`の`{id}`のように、動的に変化するURLを定義します。
 `{id}`はmodelオブジェクトにある同一名称のpropertyを利用し、エンドポイントを作成します。
 リソースのエンドポイントを確認するには`.routing()`を呼び出します。
@@ -151,7 +162,43 @@ Promiseを使ってレスポンスを受け取る
 var promise = user.show()
 
 promise.then(function(data){
-  console.log(data) // SampleUserModel
+  console.log(data)
+
+}).catch(function(error){
+  console.log(error)
+
+});
+```
+
+### 単一のリソースに対するアップデート(putリクエスト)
+```
+var user = new SampleUserModel({id: 1})
+user.name = "soplana"
+user.age  = 99
+```
+
+リソースのエンドポイントを確認
+```
+user.routing().updatePath // /users/1.json
+```
+
+発行されるPUTリクエストは、modelのpropertyがパラメータとして送信されます。
+```
+// パラメータ例
+{
+  SampleUserModel: {
+    name: "soplana",
+    age:  "99"
+  }
+}
+```
+
+Promiseを使ってレスポンスを受け取る
+```
+var promise = user.update()
+
+promise.then(function(data){
+  data.save() // {id: 1, name: "soplana", age: 99}
 
 }).catch(function(error){
   console.log(error)
