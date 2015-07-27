@@ -4,6 +4,11 @@ $ npm install
 $ npm run watch
 ```
 
+## test
+```
+$ open ./src/test/test.html
+```
+
 ## Getting Started
 
 ```
