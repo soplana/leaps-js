@@ -9,6 +9,10 @@ class LeapsDatabase {
     return LeapsDatabase.tables[this.tableName]
   };
 
+  get defaultSequenceNoData() {
+    return {sequenceNo: 1}
+  };
+
   constructor(tableName) {
     this.tableName = tableName;
     this.__createTables__();
@@ -47,8 +51,14 @@ class LeapsDatabase {
 
   destroyAll() {
     try {
+      var sqTableName = LeapsDatabase.sequenceTableName(this.tableName),
+          initData    = this.defaultSequenceNoData;
+
       LeapsStorage.createTable(this.tableName);
       LeapsDatabase.tables[this.tableName] = [];
+
+      LeapsStorage.persistence(sqTableName, [initData]);
+      LeapsDatabase.tables[sqTableName]    = [initData];
       return true
     } catch(e) {
       console.log("delete error!");
@@ -100,11 +110,12 @@ class LeapsDatabase {
   };
 
 //***************** __privateMethods__ *****************//
+
   // tableの作成
   __createTables__() {
     if( _.isEmpty(this.table) ){
       var sqTableName = LeapsDatabase.sequenceTableName(this.tableName),
-          initData    = {sequenceNo: 1};
+          initData    = this.defaultSequenceNoData;
 
       if(this.constructor.options.persist) {
         if( !LeapsStorage.hasTable(this.tableName) ){

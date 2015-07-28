@@ -26,6 +26,11 @@ var LeapsDatabase = (function () {
         return LeapsDatabase.tables[this.tableName];
       }
     },
+    defaultSequenceNoData: {
+      get: function () {
+        return { sequenceNo: 1 };
+      }
+    },
     insert: {
 
       //***************** instanceMethods *****************//
@@ -64,8 +69,14 @@ var LeapsDatabase = (function () {
     destroyAll: {
       value: function destroyAll() {
         try {
+          var sqTableName = LeapsDatabase.sequenceTableName(this.tableName),
+              initData = this.defaultSequenceNoData;
+
           LeapsStorage.createTable(this.tableName);
           LeapsDatabase.tables[this.tableName] = [];
+
+          LeapsStorage.persistence(sqTableName, [initData]);
+          LeapsDatabase.tables[sqTableName] = [initData];
           return true;
         } catch (e) {
           console.log("delete error!");
@@ -87,12 +98,13 @@ var LeapsDatabase = (function () {
     __createTables__: {
 
       //***************** __privateMethods__ *****************//
+
       // tableの作成
 
       value: function __createTables__() {
         if (_.isEmpty(this.table)) {
           var sqTableName = LeapsDatabase.sequenceTableName(this.tableName),
-              initData = { sequenceNo: 1 };
+              initData = this.defaultSequenceNoData;
 
           if (this.constructor.options.persist) {
             if (!LeapsStorage.hasTable(this.tableName)) {

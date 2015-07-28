@@ -30,13 +30,13 @@ var LeapsModelRequest = (function (_LeapsCriteria) {
       }
     },
     show: {
-      value: function show() {
-        return LeapsHttpRequest.show(this);
+      value: function show(options) {
+        return LeapsHttpRequest.show(this, options);
       }
     },
     update: {
-      value: function update() {
-        return LeapsHttpRequest.update(this);
+      value: function update(options) {
+        return LeapsHttpRequest.update(this, options);
       }
     },
     toPostParams: {
@@ -75,8 +75,8 @@ var LeapsModelRequest = (function (_LeapsCriteria) {
       }
     },
     index: {
-      value: function index() {
-        return LeapsHttpRequest.index(this);
+      value: function index(options) {
+        return LeapsHttpRequest.index(this, options);
       }
     }
   });

@@ -66,10 +66,15 @@ var LeapsHttpRequest = (function () {
       value: function index(modelClass) {
         var _this = this;
 
+        var options = arguments[1] === undefined ? {} : arguments[1];
+
         var deferred = this.xhrRequest(function (data) {
-          return _.map(data, function (d) {
+          var resultModels = _.map(data, function (d) {
             return modelClass.castModel(d);
           });
+          if (options.save) modelClass.insert(resultModels);
+
+          return resultModels;
         }, function (xhr) {
           xhr.open("GET", modelClass.routing().indexPath);
           xhr = _this.setDefaultHeader(xhr);
@@ -80,11 +85,16 @@ var LeapsHttpRequest = (function () {
       }
     },
     show: {
-      value: function show(model, conditions) {
+      value: function show(model) {
         var _this = this;
 
+        var options = arguments[1] === undefined ? {} : arguments[1];
+
         var deferred = this.xhrRequest(function (data) {
-          return model.constructor.castModel(data);
+          var resultModel = model.constructor.castModel(data);
+          if (options.save) resultModel.save();
+
+          return resultModel;
         }, function (xhr) {
           xhr.open("GET", model.routing().showPath);
           xhr = _this.setDefaultHeader(xhr);
@@ -95,11 +105,17 @@ var LeapsHttpRequest = (function () {
       }
     },
     update: {
-      value: function update(model, conditions) {
+      value: function update(model) {
         var _this = this;
 
+        var options = arguments[1] === undefined ? {} : arguments[1];
+
         var deferred = this.xhrRequest(function (data) {
-          return model.constructor.castModel(data);
+          var resultModel = model.constructor.castModel(data);
+          resultModel.__id = model.__id;
+          if (options.save) resultModel.save();
+
+          return resultModel;
         }, function (xhr) {
           xhr.open("PUT", model.routing().updatePath, true);
           xhr = _this.setDefaultHeader(xhr);
@@ -240,6 +256,11 @@ var LeapsDatabase = (function () {
         return LeapsDatabase.tables[this.tableName];
       }
     },
+    defaultSequenceNoData: {
+      get: function () {
+        return { sequenceNo: 1 };
+      }
+    },
     insert: {
 
       //***************** instanceMethods *****************//
@@ -278,8 +299,14 @@ var LeapsDatabase = (function () {
     destroyAll: {
       value: function destroyAll() {
         try {
+          var sqTableName = LeapsDatabase.sequenceTableName(this.tableName),
+              initData = this.defaultSequenceNoData;
+
           LeapsStorage.createTable(this.tableName);
           LeapsDatabase.tables[this.tableName] = [];
+
+          LeapsStorage.persistence(sqTableName, [initData]);
+          LeapsDatabase.tables[sqTableName] = [initData];
           return true;
         } catch (e) {
           console.log("delete error!");
@@ -301,12 +328,13 @@ var LeapsDatabase = (function () {
     __createTables__: {
 
       //***************** __privateMethods__ *****************//
+
       // tableの作成
 
       value: function __createTables__() {
         if (_.isEmpty(this.table)) {
           var sqTableName = LeapsDatabase.sequenceTableName(this.tableName),
-              initData = { sequenceNo: 1 };
+              initData = this.defaultSequenceNoData;
 
           if (this.constructor.options.persist) {
             if (!LeapsStorage.hasTable(this.tableName)) {
@@ -551,13 +579,13 @@ var LeapsModelRequest = (function (_LeapsCriteria) {
       }
     },
     show: {
-      value: function show() {
-        return LeapsHttpRequest.show(this);
+      value: function show(options) {
+        return LeapsHttpRequest.show(this, options);
       }
     },
     update: {
-      value: function update() {
-        return LeapsHttpRequest.update(this);
+      value: function update(options) {
+        return LeapsHttpRequest.update(this, options);
       }
     },
     toPostParams: {
@@ -596,8 +624,8 @@ var LeapsModelRequest = (function (_LeapsCriteria) {
       }
     },
     index: {
-      value: function index() {
-        return LeapsHttpRequest.index(this);
+      value: function index(options) {
+        return LeapsHttpRequest.index(this, options);
       }
     }
   });

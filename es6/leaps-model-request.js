@@ -7,12 +7,12 @@ class LeapsModelRequest extends LeapsCriteria {
     return new LeapsRoute(this, this.constructor.resourcePath())
   };
 
-  show() {
-    return LeapsHttpRequest.show(this)
+  show(options) {
+    return LeapsHttpRequest.show(this, options)
   };
 
-  update() {
-    return LeapsHttpRequest.update(this)
+  update(options) {
+    return LeapsHttpRequest.update(this, options)
   };
 
   toPostParams() {
@@ -44,7 +44,7 @@ class LeapsModelRequest extends LeapsCriteria {
     return new LeapsRoute(null, this.resourcePath())
   };
 
-  static index() {
-    return LeapsHttpRequest.index(this)
+  static index(options) {
+    return LeapsHttpRequest.index(this, options)
   };
 }

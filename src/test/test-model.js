@@ -18,6 +18,11 @@ var User = (function (_LeapsModel) {
   _inherits(User, _LeapsModel);
 
   _createClass(User, null, {
+    resourcePath: {
+      value: function resourcePath() {
+        return "/users/{name}.json";
+      }
+    },
     properties: {
       value: function properties() {
         return {
@@ -31,3 +36,5 @@ var User = (function (_LeapsModel) {
 
   return User;
 })(LeapsModel);
+
+;

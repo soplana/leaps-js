@@ -34,10 +34,15 @@ var LeapsHttpRequest = (function () {
       value: function index(modelClass) {
         var _this = this;
 
+        var options = arguments[1] === undefined ? {} : arguments[1];
+
         var deferred = this.xhrRequest(function (data) {
-          return _.map(data, function (d) {
+          var resultModels = _.map(data, function (d) {
             return modelClass.castModel(d);
           });
+          if (options.save) modelClass.insert(resultModels);
+
+          return resultModels;
         }, function (xhr) {
           xhr.open("GET", modelClass.routing().indexPath);
           xhr = _this.setDefaultHeader(xhr);
@@ -48,11 +53,16 @@ var LeapsHttpRequest = (function () {
       }
     },
     show: {
-      value: function show(model, conditions) {
+      value: function show(model) {
         var _this = this;
 
+        var options = arguments[1] === undefined ? {} : arguments[1];
+
         var deferred = this.xhrRequest(function (data) {
-          return model.constructor.castModel(data);
+          var resultModel = model.constructor.castModel(data);
+          if (options.save) resultModel.save();
+
+          return resultModel;
         }, function (xhr) {
           xhr.open("GET", model.routing().showPath);
           xhr = _this.setDefaultHeader(xhr);
@@ -63,11 +73,17 @@ var LeapsHttpRequest = (function () {
       }
     },
     update: {
-      value: function update(model, conditions) {
+      value: function update(model) {
         var _this = this;
 
+        var options = arguments[1] === undefined ? {} : arguments[1];
+
         var deferred = this.xhrRequest(function (data) {
-          return model.constructor.castModel(data);
+          var resultModel = model.constructor.castModel(data);
+          resultModel.__id = model.__id;
+          if (options.save) resultModel.save();
+
+          return resultModel;
         }, function (xhr) {
           xhr.open("PUT", model.routing().updatePath, true);
           xhr = _this.setDefaultHeader(xhr);

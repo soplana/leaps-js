@@ -125,9 +125,22 @@ describe('leaps-model', ()=> {
       User.destroyAll();
     });
 
-    context('保存に成功すること', ()=> {
-      it('save()', ()=>{
+    context('削除に成功すること', ()=> {
+      it('0件', ()=>{
         expect( User.all().length ).to.equal( 0 )
+      });
+    });
+
+    context('シーケンス番号も初期化されること', ()=> {
+      var user = null;
+
+      beforeEach(()=>{
+        user = new User({name: 'aaa', age: 20})
+        user.save()
+      });
+
+      it('1が割り振られること', ()=>{
+        expect( user.__id ).to.equal( 1 )
       });
     });
   });

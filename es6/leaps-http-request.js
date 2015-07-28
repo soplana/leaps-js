@@ -15,9 +15,12 @@ class LeapsHttpRequest {
     return xhr
   };
 
-  static index(modelClass) {
+  static index(modelClass, options={}) {
     var deferred = this.xhrRequest((data)=>{
-      return _.map(data, (d)=>{return modelClass.castModel(d)});
+      var resultModels = _.map(data, (d)=>{return modelClass.castModel(d)});
+      if(options.save) modelClass.insert( resultModels );
+
+      return resultModels;
 
     }, (xhr)=>{
       xhr.open("GET", modelClass.routing().indexPath);
@@ -28,9 +31,12 @@ class LeapsHttpRequest {
     return deferred.promise
   };
 
-  static show(model, conditions) {
+  static show(model, options={}) {
     var deferred = this.xhrRequest((data)=>{
-      return model.constructor.castModel(data);
+      var resultModel = model.constructor.castModel(data);
+      if(options.save) resultModel.save();
+
+      return resultModel;
 
     }, (xhr)=>{
       xhr.open("GET", model.routing().showPath);
@@ -41,9 +47,13 @@ class LeapsHttpRequest {
     return deferred.promise
   };
 
-  static update(model, conditions) {
+  static update(model, options={}) {
     var deferred = this.xhrRequest((data)=>{
-      return model.constructor.castModel(data);
+      var resultModel  = model.constructor.castModel(data);
+      resultModel.__id = model.__id;
+      if(options.save) resultModel.save();
+
+      return resultModel;
 
     }, (xhr)=>{
       xhr.open("PUT", model.routing().updatePath, true);
