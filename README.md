@@ -4,11 +4,6 @@ $ npm install
 $ npm run watch
 ```
 
-## test
-```
-$ open ./src/test/test.html
-```
-
 ## Getting Started
 
 ```
@@ -84,6 +79,12 @@ user.destroy() // true
 SampleUserModel.find(1) // null
 ```
 
+一括削除
+```
+SampleUserModel.destroyAll()
+SampleUserModel.all().length // 0
+```
+
 where検索も可能です。複数条件を渡すとand検索します。
 ```
 new SampleUserModel({name: "a", age: 10}).save()
@@ -152,6 +153,16 @@ promise.then(function(data){ // [SampleUserModel, SampleUserModel, ..., SampleUs
 });
 ```
 
+レスポンスの受け取りに成功した場合、データを永続化さたい場合には`{save: true}`オプションを渡します。
+```
+var promise = SampleUserModel.index({save: true})
+
+promise.then(function(data){
+  SampleUserModel.all().length // n
+
+})
+```
+
 ### 単一のリソースを取得する(getリクエスト)
 ```
 var user = new SampleUserModel({id: 1})
@@ -209,4 +220,11 @@ promise.then(function(data){
   console.log(error)
 
 });
+```
+
+## test
+
+テストの実行はブラウザ上を想定します。テストの実態は`./src/test/`以下にあります。
+```
+$ open ./src/test/test.html
 ```
