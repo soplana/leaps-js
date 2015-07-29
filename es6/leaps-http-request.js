@@ -16,53 +16,19 @@ class LeapsHttpRequest {
   };
 
   static index(modelClass, options={}) {
-    var deferred = this.xhrRequest((data)=>{
-      var resultModels = _.map(data, (d)=>{return modelClass.castModel(d)});
-      if(options.save) modelClass.insert( resultModels );
-
-      return resultModels;
-
-    }, (xhr)=>{
-      xhr.open("GET", modelClass.routing().indexPath);
-      xhr = this.setDefaultHeader(xhr);
-      xhr.send();
-    });
-
-    return deferred.promise
+    return this.__getRequest__("GET", modelClass, modelClass.routing().indexPath, options);
   };
 
   static show(model, options={}) {
-    var deferred = this.xhrRequest((data)=>{
-      var resultModel = model.constructor.castModel(data);
-      if(options.save) resultModel.save();
-
-      return resultModel;
-
-    }, (xhr)=>{
-      xhr.open("GET", model.routing().showPath);
-      xhr = this.setDefaultHeader(xhr);
-      xhr.send();
-    });
-
-    return deferred.promise
+    return this.__getRequest__("GET", model, model.routing().showPath, options);
   };
 
   static update(model, options={}) {
-    var deferred = this.xhrRequest((data)=>{
-      var resultModel  = model.constructor.castModel(data);
-      resultModel.__id = model.__id;
-      if(options.save) resultModel.save();
+    return this.__sendRequest__("PUT", model, model.routing().updatePath, options);
+  };
 
-      return resultModel;
-
-    }, (xhr)=>{
-      xhr.open("PUT", model.routing().updatePath, true);
-      xhr = this.setDefaultHeader(xhr);
-      xhr.setRequestHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
-      xhr.send(model.toPostParams());
-    });
-
-    return deferred.promise
+  static create(model, options={}) {
+    return this.__sendRequest__("POST", model, model.routing().createPath, options);
   };
 
   static xhrRequest(dataCast, callback) {
@@ -89,5 +55,47 @@ class LeapsHttpRequest {
     try{ return new ActiveXObject('MSXML2.XMLHTTP.3.0') }catch(e){};
     try{ return new ActiveXObject('MSXML2.XMLHTTP')     }catch(e){};
     return null;
+  };
+
+//***************** __privateMethods__ *****************//
+
+  static __sendRequest__(httpMethod, model, path, options){
+    var deferred = this.xhrRequest((data)=>{
+      var resultModel  = model.constructor.castModel(data);
+      if(!!model.__id) resultModel.__id = model.__id;
+      if(!!options.save) resultModel.save();
+
+      return resultModel;
+
+    }, (xhr)=>{
+      xhr.open(httpMethod, path, true);
+      xhr = this.setDefaultHeader(xhr);
+      xhr.setRequestHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
+      xhr.send(model.toPostParams());
+    });
+
+    return deferred.promise
+  };
+
+  static __getRequest__(httpMethod, model, path, options){
+    var deferred = this.xhrRequest((data)=>{
+      if(_.isArray(data)) {
+        var resultModels = _.map(data, (d)=>{return model.castModel(d)});
+        if(options.save) model.insert( resultModels );
+        return resultModels;
+
+      } else {
+        var resultModel = model.constructor.castModel(data);
+        if(options.save) resultModel.save();
+        return resultModel;
+      };
+
+    }, (xhr)=>{
+      xhr.open(httpMethod, path);
+      xhr = this.setDefaultHeader(xhr);
+      xhr.send();
+    });
+
+    return deferred.promise
   };
 };

@@ -159,7 +159,6 @@ var promise = SampleUserModel.index({save: true})
 
 promise.then(function(data){
   SampleUserModel.all().length // n
-
 })
 ```
 
@@ -178,11 +177,42 @@ Promiseを使ってレスポンスを受け取る
 var promise = user.show()
 
 promise.then(function(data){
-  console.log(data)
-
+  ...
 }).catch(function(error){
-  console.log(error)
+  ...
+});
+```
 
+### リソースを作成する(postリクエスト)
+```
+var user = new SampleUserModel({id: 1, name: 'hoge'})
+```
+
+リソースのエンドポイントを確認
+```
+user.routing().createPath // /users.json
+```
+
+発行されるPOSTリクエストは、modelのpropertyがパラメータとして送信されます。
+```
+// パラメータ例
+{
+  SampleUserModel: {
+    id:   "1",
+    name: "hoge",
+    age:  null
+  }
+}
+```
+
+Promiseを使ってレスポンスを受け取る
+```
+var promise = user.create()
+
+promise.then(function(data){
+  ...
+}).catch(function(error){
+  ...
 });
 ```
 
@@ -203,6 +233,7 @@ user.routing().updatePath // /users/1.json
 // パラメータ例
 {
   SampleUserModel: {
+    id:   1,
     name: "soplana",
     age:  "99"
   }
@@ -214,11 +245,9 @@ Promiseを使ってレスポンスを受け取る
 var promise = user.update()
 
 promise.then(function(data){
-  data.save() // {id: 1, name: "soplana", age: 99}
-
+  ...
 }).catch(function(error){
-  console.log(error)
-
+  ...
 });
 ```
 

@@ -15,6 +15,14 @@ class LeapsModelRequest extends LeapsCriteria {
     return LeapsHttpRequest.update(this, options)
   };
 
+  create(options) {
+    return LeapsHttpRequest.create(this, options)
+  };
+
+  delete(options) {
+    return LeapsHttpRequest.delete(this, options)
+  };
+
   toPostParams() {
     var params = [];
 

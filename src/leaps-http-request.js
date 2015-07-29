@@ -32,66 +32,30 @@ var LeapsHttpRequest = (function () {
     },
     index: {
       value: function index(modelClass) {
-        var _this = this;
-
         var options = arguments[1] === undefined ? {} : arguments[1];
 
-        var deferred = this.xhrRequest(function (data) {
-          var resultModels = _.map(data, function (d) {
-            return modelClass.castModel(d);
-          });
-          if (options.save) modelClass.insert(resultModels);
-
-          return resultModels;
-        }, function (xhr) {
-          xhr.open("GET", modelClass.routing().indexPath);
-          xhr = _this.setDefaultHeader(xhr);
-          xhr.send();
-        });
-
-        return deferred.promise;
+        return this.__getRequest__("GET", modelClass, modelClass.routing().indexPath, options);
       }
     },
     show: {
       value: function show(model) {
-        var _this = this;
-
         var options = arguments[1] === undefined ? {} : arguments[1];
 
-        var deferred = this.xhrRequest(function (data) {
-          var resultModel = model.constructor.castModel(data);
-          if (options.save) resultModel.save();
-
-          return resultModel;
-        }, function (xhr) {
-          xhr.open("GET", model.routing().showPath);
-          xhr = _this.setDefaultHeader(xhr);
-          xhr.send();
-        });
-
-        return deferred.promise;
+        return this.__getRequest__("GET", model, model.routing().showPath, options);
       }
     },
     update: {
       value: function update(model) {
-        var _this = this;
-
         var options = arguments[1] === undefined ? {} : arguments[1];
 
-        var deferred = this.xhrRequest(function (data) {
-          var resultModel = model.constructor.castModel(data);
-          resultModel.__id = model.__id;
-          if (options.save) resultModel.save();
+        return this.__sendRequest__("PUT", model, model.routing().updatePath, options);
+      }
+    },
+    create: {
+      value: function create(model) {
+        var options = arguments[1] === undefined ? {} : arguments[1];
 
-          return resultModel;
-        }, function (xhr) {
-          xhr.open("PUT", model.routing().updatePath, true);
-          xhr = _this.setDefaultHeader(xhr);
-          xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-          xhr.send(model.toPostParams());
-        });
-
-        return deferred.promise;
+        return this.__sendRequest__("POST", model, model.routing().createPath, options);
       }
     },
     xhrRequest: {
@@ -128,6 +92,54 @@ var LeapsHttpRequest = (function () {
           return new ActiveXObject("MSXML2.XMLHTTP");
         } catch (e) {};
         return null;
+      }
+    },
+    __sendRequest__: {
+
+      //***************** __privateMethods__ *****************//
+
+      value: function __sendRequest__(httpMethod, model, path, options) {
+        var _this = this;
+
+        var deferred = this.xhrRequest(function (data) {
+          var resultModel = model.constructor.castModel(data);
+          if (!!model.__id) resultModel.__id = model.__id;
+          if (!!options.save) resultModel.save();
+
+          return resultModel;
+        }, function (xhr) {
+          xhr.open(httpMethod, path, true);
+          xhr = _this.setDefaultHeader(xhr);
+          xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+          xhr.send(model.toPostParams());
+        });
+
+        return deferred.promise;
+      }
+    },
+    __getRequest__: {
+      value: function __getRequest__(httpMethod, model, path, options) {
+        var _this = this;
+
+        var deferred = this.xhrRequest(function (data) {
+          if (_.isArray(data)) {
+            var resultModels = _.map(data, function (d) {
+              return model.castModel(d);
+            });
+            if (options.save) model.insert(resultModels);
+            return resultModels;
+          } else {
+            var resultModel = model.constructor.castModel(data);
+            if (options.save) resultModel.save();
+            return resultModel;
+          };
+        }, function (xhr) {
+          xhr.open(httpMethod, path);
+          xhr = _this.setDefaultHeader(xhr);
+          xhr.send();
+        });
+
+        return deferred.promise;
       }
     }
   });

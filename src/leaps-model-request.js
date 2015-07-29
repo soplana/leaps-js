@@ -39,6 +39,16 @@ var LeapsModelRequest = (function (_LeapsCriteria) {
         return LeapsHttpRequest.update(this, options);
       }
     },
+    create: {
+      value: function create(options) {
+        return LeapsHttpRequest.create(this, options);
+      }
+    },
+    "delete": {
+      value: function _delete(options) {
+        return LeapsHttpRequest["delete"](this, options);
+      }
+    },
     toPostParams: {
       value: function toPostParams() {
         var params = [];

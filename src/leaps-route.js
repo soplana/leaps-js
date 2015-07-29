@@ -28,6 +28,16 @@ var LeapsRoute = (function () {
         return this.__dynamicPath__();
       }
     },
+    createPath: {
+      get: function () {
+        return this.__staticPath__();
+      }
+    },
+    deletePath: {
+      get: function () {
+        return this.__dynamicPath__();
+      }
+    },
     __staticPath__: {
 
       //***************** __privateMethods__ *****************//
