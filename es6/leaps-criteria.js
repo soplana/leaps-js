@@ -2,7 +2,7 @@
 class LeapsCriteria {
   static all() {
     var dataList = LeapsDatabase.selectAll(this.name);
-    return _.map( dataList, (data)=>{return this.castModel(data)} )
+    return _.map(dataList, data => this.castModel(data))
   };
 
   static find(__id) {
@@ -11,6 +11,6 @@ class LeapsCriteria {
   };
 
   static where(conditions) {
-    return _.map( this.db().where(conditions), (data)=>{return this.castModel(data)} )
+    return _.map(this.db().where(conditions), data => this.castModel(data))
   };
 };

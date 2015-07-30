@@ -31,6 +31,10 @@ class LeapsHttpRequest {
     return this.__sendRequest__("POST", model, model.routing().createPath, options);
   };
 
+  static delete(model, options={}) {
+    return this.__getRequest__("DELETE", model, model.routing().deletePath, options);
+  };
+
   static xhrRequest(dataCast, callback) {
     var xhr      = this.getXHRObject();
     var deferred = new LeapsDeferred();
@@ -80,7 +84,7 @@ class LeapsHttpRequest {
   static __getRequest__(httpMethod, model, path, options){
     var deferred = this.xhrRequest((data)=>{
       if(_.isArray(data)) {
-        var resultModels = _.map(data, (d)=>{return model.castModel(d)});
+        var resultModels = _.map(data, d => model.castModel(d));
         if(options.save) model.insert( resultModels );
         return resultModels;
 

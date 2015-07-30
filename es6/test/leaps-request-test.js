@@ -97,6 +97,47 @@ describe('leaps-request', ()=>{
     });
   });
 
+
+  describe('新規作成リクエスト', ()=>{
+    var response = new User({name: 'aa', age: 10});
+
+    it("pathが正しいこと", function(){
+      expect( User.routing().createPath ).to.equal( "/users.json" )
+    });
+
+    context('DBへの保存なし', ()=>{
+      it("responseが正しいこと", function(done){
+        new User( response ).create().then((data)=>{
+          expect( response ).deep.equal( data );
+          done();
+        });
+
+        this.requests[0].respond(200, {'Content-Type': 'text/json'}, JSON.stringify(response));
+      });
+
+      it("DBに保存されていないこと", function(done){
+        new User( response ).create().then((data)=>{
+          expect( User.all().length ).to.equal( 0 );
+          done();
+        });
+
+        this.requests[0].respond(200, {'Content-Type': 'text/json'}, JSON.stringify(response));
+      });
+    });
+
+    context('DBへの保存あり', ()=>{
+      it("DBへの保存も同時に行えること", function(done){
+        new User( response ).create({save: true}).then((data)=>{
+          expect( User.all().length ).to.equal( 1 );
+          done();
+        });
+
+        this.requests[0].respond(200, {'Content-Type': 'text/json'}, JSON.stringify(response));
+      });
+    });
+  });
+
+
   describe('アップデートリクエスト', ()=>{
     var user     = new User({name: 'aa', age: 10}),
         response = user;
@@ -129,6 +170,36 @@ describe('leaps-request', ()=>{
       it("DBへの保存も同時に行えること", function(done){
         user.update({save: true}).then((data)=>{
           expect( User.find(data.__id).name ).to.equal( response.name );
+          done();
+        });
+
+        this.requests[0].respond(200, {'Content-Type': 'text/json'}, JSON.stringify(response));
+      });
+    });
+  });
+
+
+  describe('削除リクエスト', ()=>{
+    var user     = new User({name: 'aa', age: 10}),
+        response = user;
+
+    it("pathが正しいこと", function(){
+      expect( user.routing().deletePath ).to.equal( "/users/aa.json" )
+    });
+
+    context('DBへの保存なし', ()=>{
+      it("responseが正しいこと", function(done){
+        user.delete().then((data)=>{
+          expect( response.name ).to.equal( data.name );
+          done();
+        });
+
+        this.requests[0].respond(200, {'Content-Type': 'text/json'}, JSON.stringify(response));
+      });
+
+      it("DBに保存されていないこと", function(done){
+        user.delete().then((data)=>{
+          expect( User.all().length ).to.equal( 0 );
           done();
         });
 

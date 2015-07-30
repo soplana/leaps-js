@@ -58,6 +58,13 @@ var LeapsHttpRequest = (function () {
         return this.__sendRequest__("POST", model, model.routing().createPath, options);
       }
     },
+    "delete": {
+      value: function _delete(model) {
+        var options = arguments[1] === undefined ? {} : arguments[1];
+
+        return this.__getRequest__("DELETE", model, model.routing().deletePath, options);
+      }
+    },
     xhrRequest: {
       value: function xhrRequest(dataCast, callback) {
         var xhr = this.getXHRObject();
