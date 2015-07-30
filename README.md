@@ -12,7 +12,7 @@ $ npm run watch
   <head>
     <title>Leaps.js Sample</title>
     <script src='http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js'></script>
-    <script src='./out/leaps-model.js'></script>
+    <script src='./src/leaps-model.js'></script>
   </head>
   <body></body>
 </html>
@@ -169,7 +169,7 @@ var user = new SampleUserModel({id: 1})
 
 リソースのエンドポイントを確認
 ```
-user.routing().indexPath // /users/1.json
+user.routing().showPath // /users/1.json
 ```
 
 Promiseを使ってレスポンスを受け取る
