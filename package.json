@@ -2,8 +2,11 @@
   "devDependencies": {
     "babel": "^4.7.16",
     "gulp": "^3.8.11",
+    "babelify": "^6.1.1",
     "gulp-babel": "^4.0.0",
-    "gulp-include": "*",
+    "browserify": "*",
+    "vinyl-source-stream": "*",
+    "watchify": "*",
     "mocha": "*",
     "chai": "*",
     "sinon": "*",

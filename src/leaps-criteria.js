@@ -1,45 +1,26 @@
-"use strict";
-
-var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+import { default as LeapsModel        }  from  './leaps-model'
+import { default as LeapsDeferred     }  from  './leaps-deferred'
+import { default as LeapsHttpRequest  }  from  './leaps-http-request'
+import { default as LeapsStorage      }  from  './leaps-storage'
+import { default as LeapsDatabase     }  from  './leaps-database'
+import { default as LeapsRoute        }  from  './leaps-route'
+import { default as LeapsModelRequest }  from  './leaps-model-request'
 
 // 検索周りの処理をまとめたい
+class LeapsCriteria {
 
-var LeapsCriteria = (function () {
-  function LeapsCriteria() {
-    _classCallCheck(this, LeapsCriteria);
-  }
+  static all() {
+    var dataList = LeapsDatabase.selectAll(this.name);
+    return _.map(dataList, data => this.castModel(data))
+  };
 
-  _createClass(LeapsCriteria, null, {
-    all: {
-      value: function all() {
-        var _this = this;
+  static find(__id) {
+    var record = this.db().findById(__id);
+    return record ? this.castModel(record) : null
+  };
 
-        var dataList = LeapsDatabase.selectAll(this.name);
-        return _.map(dataList, function (data) {
-          return _this.castModel(data);
-        });
-      }
-    },
-    find: {
-      value: function find(__id) {
-        var record = this.db().findById(__id);
-        return record ? this.castModel(record) : null;
-      }
-    },
-    where: {
-      value: function where(conditions) {
-        var _this = this;
-
-        return _.map(this.db().where(conditions), function (data) {
-          return _this.castModel(data);
-        });
-      }
-    }
-  });
-
-  return LeapsCriteria;
-})();
-
-;
+  static where(conditions) {
+    return _.map(this.db().where(conditions), data => this.castModel(data))
+  };
+};
+module.exports = LeapsCriteria;

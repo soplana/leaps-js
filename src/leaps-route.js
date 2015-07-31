@@ -1,68 +1,51 @@
-"use strict";
+import { default as LeapsModel        }  from  './leaps-model'
+import { default as LeapsDeferred     }  from  './leaps-deferred'
+import { default as LeapsHttpRequest  }  from  './leaps-http-request'
+import { default as LeapsStorage      }  from  './leaps-storage'
+import { default as LeapsDatabase     }  from  './leaps-database'
+import { default as LeapsCriteria     }  from  './leaps-criteria'
+import { default as LeapsModelRequest }  from  './leaps-model-request'
 
-var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
-var LeapsRoute = (function () {
-  function LeapsRoute(model, pathString) {
-    _classCallCheck(this, LeapsRoute);
-
+class LeapsRoute {
+  constructor(model, pathString) {
     this.model = model;
-    this.path = pathString;
-  }
+    this.path  = pathString;
+  };
 
-  _createClass(LeapsRoute, {
-    indexPath: {
-      get: function () {
-        return this.__staticPath__();
-      }
-    },
-    showPath: {
-      get: function () {
-        return this.__dynamicPath__();
-      }
-    },
-    updatePath: {
-      get: function () {
-        return this.__dynamicPath__();
-      }
-    },
-    createPath: {
-      get: function () {
-        return this.__staticPath__();
-      }
-    },
-    deletePath: {
-      get: function () {
-        return this.__dynamicPath__();
-      }
-    },
-    __staticPath__: {
+  get indexPath() {
+    return this.__staticPath__()
+  };
 
-      //***************** __privateMethods__ *****************//
+  get showPath() {
+    return this.__dynamicPath__()
+  };
 
-      value: function __staticPath__() {
-        return this.path.replace(/\{.+\}|\/\{.+\}/, "");
+  get updatePath() {
+    return this.__dynamicPath__()
+  };
+
+  get createPath() {
+    return this.__staticPath__()
+  };
+
+  get deletePath() {
+    return this.__dynamicPath__()
+  };
+
+//***************** __privateMethods__ *****************//
+  __staticPath__() {
+    return this.path.replace(/\{.+\}|\/\{.+\}/, "")
+  };
+
+  __dynamicPath__() {
+    return this.path.replace(/\{.+?\}/g, (match)=>{
+      var keyName = match.replace(/\{|\}/g, "");
+      if(_.has(this.model.toObject(), keyName)) {
+        return this.model[keyName]
+      } else {
+        return null
       }
-    },
-    __dynamicPath__: {
-      value: function __dynamicPath__() {
-        var _this = this;
-
-        return this.path.replace(/\{.+?\}/g, function (match) {
-          var keyName = match.replace(/\{|\}/g, "");
-          if (_.has(_this.model.toObject(), keyName)) {
-            return _this.model[keyName];
-          } else {
-            return null;
-          }
-        });
-      }
-    }
-  });
-
-  return LeapsRoute;
-})();
-
-;
+    })
+  };
+};
+module.exports = LeapsRoute;

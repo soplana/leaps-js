@@ -1,70 +1,52 @@
-"use strict";
+import { default as LeapsModel        }  from  './leaps-model'
+import { default as LeapsDeferred     }  from  './leaps-deferred'
+import { default as LeapsHttpRequest  }  from  './leaps-http-request'
+import { default as LeapsDatabase     }  from  './leaps-database'
+import { default as LeapsCriteria     }  from  './leaps-criteria'
+import { default as LeapsRoute        }  from  './leaps-route'
+import { default as LeapsModelRequest }  from  './leaps-model-request'
 
-var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+class LeapsStorage {
+  static clear(databaseName) {
+    if(!_.isEmpty(localStorage[this.__storageName__(databaseName)])) {
+      localStorage.removeItem(this.__storageName__(databaseName));
+    };
+  };
 
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+  static setUp(databaseName) {
+    this.storage        = localStorage;
+    this.appStorageName = this.__storageName__(databaseName);
 
-var LeapsStorage = (function () {
-  function LeapsStorage() {
-    _classCallCheck(this, LeapsStorage);
-  }
+    if(_.isEmpty(this.storage[this.appStorageName])) {
+      // 初期化
+      this.storage[this.appStorageName] = JSON.stringify({});
+    };
+  };
 
-  _createClass(LeapsStorage, null, {
-    clear: {
-      value: function clear(databaseName) {
-        if (!_.isEmpty(localStorage[this.__storageName__(databaseName)])) {
-          localStorage.removeItem(this.__storageName__(databaseName));
-        };
-      }
-    },
-    setUp: {
-      value: function setUp(databaseName) {
-        this.storage = localStorage;
-        this.appStorageName = this.__storageName__(databaseName);
+  static load() {
+    return JSON.parse(this.appStorage())
+  };
 
-        if (_.isEmpty(this.storage[this.appStorageName])) {
-          // 初期化
-          this.storage[this.appStorageName] = JSON.stringify({});
-        };
-      }
-    },
-    load: {
-      value: function load() {
-        return JSON.parse(this.appStorage());
-      }
-    },
-    hasTable: {
-      value: function hasTable(tableName) {
-        return _.has(this.load(), tableName);
-      }
-    },
-    createTable: {
-      value: function createTable(tableName) {
-        this.persistence(tableName, []);
-      }
-    },
-    appStorage: {
-      value: function appStorage() {
-        return this.storage[this.appStorageName];
-      }
-    },
-    persistence: {
-      value: function persistence(tableName, data) {
-        var newStorage = this.load();
-        newStorage[tableName] = data;
+  static hasTable(tableName) {
+    return _.has(this.load(), tableName)
+  };
 
-        this.storage[this.appStorageName] = JSON.stringify(newStorage);
-      }
-    },
-    __storageName__: {
+  static createTable(tableName) {
+    this.persistence(tableName, []);
+  };
 
-      //***************** __privateMethods__ *****************//
+  static appStorage() {
+    return this.storage[this.appStorageName]
+  };
 
-      value: function __storageName__(name) {
-        return "leapsStorage_" + name;
-      }
-    }
-  });
+  static persistence(tableName, data) {
+    var newStorage        = this.load();
+    newStorage[tableName] = data;
 
-  return LeapsStorage;
-})();
+    this.storage[this.appStorageName] = JSON.stringify(newStorage);
+  };
+
+//***************** __privateMethods__ *****************//
+  static __storageName__(name){ return `leapsStorage_${name}`}
+}
+module.exports = LeapsStorage;
