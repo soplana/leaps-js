@@ -20,12 +20,18 @@ class LeapsDatabase {
 
 //***************** instanceMethods *****************//
   insert(record) {
+    var returnFlag = false;
     try {
-      if( this.__isNewRecord__(record) ){
-        return this.__insert__(record);
+      if(this.__isNewRecord__(record)) {
+        returnFlag = this.__insert__(record);
+        if(returnFlag) record.__eventFire__("onSave");
+
       } else {
-        return this.__update__(record);
+        returnFlag = this.__update__(record);
+        if(returnFlag) record.__eventFire__("onChange");
       };
+
+      return returnFlag;
     } catch(e) {
       console.log("insert error!");
       console.log(e);
@@ -38,7 +44,10 @@ class LeapsDatabase {
       var deleteTargetRecord = this.findById(record.__id);
 
       if(!_.isEmpty(deleteTargetRecord)) {
-        return this.__delete__(deleteTargetRecord)
+        var returnFlag = this.__delete__(deleteTargetRecord);
+        if(returnFlag) record.__eventFire__("onDestroy");
+
+        return returnFlag
       } else {
         return false
       }

@@ -1,5 +1,7 @@
 "use strict";
 
+var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
 var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
 
 var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -145,6 +147,8 @@ var LeapsHttpRequest = (function () {
           if (!!model.__id) resultModel.__id = model.__id;
           if (!!options.save) resultModel.save();
 
+          if (httpMethod === "POST") model.__eventFire__("onCreate");else if (httpMethod === "PUT") model.__eventFire__("onUpdate");
+
           return resultModel;
         }, function (xhr) {
           xhr.open(httpMethod, path, true);
@@ -166,10 +170,14 @@ var LeapsHttpRequest = (function () {
               return model.castModel(d);
             });
             if (options.save) model.insert(resultModels);
+            model.__classEventFire__("onIndex");
             return resultModels;
           } else {
             var resultModel = model.constructor.castModel(data);
             if (options.save) resultModel.save();
+
+            if (httpMethod === "GET") model.__eventFire__("onShow");else if (httpMethod === "DELETE") model.__eventFire__("onDelete");
+
             return resultModel;
           };
         }, function (xhr) {
@@ -285,12 +293,17 @@ var LeapsDatabase = (function () {
       //***************** instanceMethods *****************//
 
       value: function insert(record) {
+        var returnFlag = false;
         try {
           if (this.__isNewRecord__(record)) {
-            return this.__insert__(record);
+            returnFlag = this.__insert__(record);
+            if (returnFlag) record.__eventFire__("onSave");
           } else {
-            return this.__update__(record);
+            returnFlag = this.__update__(record);
+            if (returnFlag) record.__eventFire__("onChange");
           };
+
+          return returnFlag;
         } catch (e) {
           console.log("insert error!");
           console.log(e);
@@ -304,7 +317,10 @@ var LeapsDatabase = (function () {
           var deleteTargetRecord = this.findById(record.__id);
 
           if (!_.isEmpty(deleteTargetRecord)) {
-            return this.__delete__(deleteTargetRecord);
+            var returnFlag = this.__delete__(deleteTargetRecord);
+            if (returnFlag) record.__eventFire__("onDestroy");
+
+            return returnFlag;
           } else {
             return false;
           }
@@ -584,19 +600,158 @@ var LeapsRoute = (function () {
 
 ;
 
+var LeapsEventList = (function (_Array) {
+  function LeapsEventList() {
+    _classCallCheck(this, LeapsEventList);
+
+    _get(Object.getPrototypeOf(LeapsEventList.prototype), "constructor", this).call(this);
+  }
+
+  _inherits(LeapsEventList, _Array);
+
+  _createClass(LeapsEventList, {
+    fire: {
+      value: function fire(eventName) {
+        _.each(_.where(this, { eventName: eventName }), function (eventObject) {
+          if (!eventObject) return null;
+
+          if (!!eventObject.context) {
+            eventObject.eventFunction.call(eventObject.context);
+          } else {
+            eventObject.eventFunction.call();
+          };
+        });
+      }
+    }
+  });
+
+  return LeapsEventList;
+})(Array);
+
+//=require leaps-model-event.js
+
+var LeapsModelEventInterface = (function (_LeapsCriteria) {
+  function LeapsModelEventInterface() {
+    _classCallCheck(this, LeapsModelEventInterface);
+
+    this.eventList = new LeapsEventList();
+  }
+
+  _inherits(LeapsModelEventInterface, _LeapsCriteria);
+
+  _createClass(LeapsModelEventInterface, {
+    onSave: {
+
+      // クエリEvent
+
+      value: function onSave(event, context) {
+        this.__addEvent__("onSave", event, context);
+      }
+    },
+    onChange: {
+      value: function onChange(event, context) {
+        this.__addEvent__("onChange", event, context);
+      }
+    },
+    onDestroy: {
+      value: function onDestroy(event, context) {
+        this.__addEvent__("onDestroy", event, context);
+      }
+    },
+    onShow: {
+
+      // 通信Event
+
+      value: function onShow(event, context) {
+        this.__addEvent__("onShow", event, context);
+      }
+    },
+    onUpdate: {
+      value: function onUpdate(event, context) {
+        this.__addEvent__("onUpdate", event, context);
+      }
+    },
+    onCreate: {
+      value: function onCreate(event, context) {
+        this.__addEvent__("onCreate", event, context);
+      }
+    },
+    onDelete: {
+      value: function onDelete(event, context) {
+        this.__addEvent__("onDelete", event, context);
+      }
+    },
+    __addEvent__: {
+
+      // class変数としてのeventListは区別する
+
+      value: function __addEvent__(eventName, eventFunction, context) {
+        this.eventList.push({ eventName: eventName, eventFunction: eventFunction, context: context });
+      }
+    },
+    __eventFire__: {
+      value: function __eventFire__(eventName) {
+        this.eventList.fire(eventName);
+      }
+    }
+  }, {
+    onDestroyAll: {
+
+      //***************** classMethods *****************//
+      // クエリEvent
+
+      value: function onDestroyAll(event, context) {
+        this.__addClassEvent__("onDestroyAll", event, context);
+      }
+    },
+    onInsert: {
+      value: function onInsert(event, context) {
+        this.__addClassEvent__("onInsert", event, context);
+      }
+    },
+    onIndex: {
+
+      // 通信Event
+
+      value: function onIndex(event, context) {
+        this.__addClassEvent__("onIndex", event, context);
+      }
+    },
+    __addClassEvent__: {
+
+      //***************** __privateMethods__ *****************//
+      // class変数としてのeventListは区別する
+
+      value: function __addClassEvent__(eventName, eventFunction, context) {
+        if (!this.classEventList) {
+          this.classEventList = new LeapsEventList();
+        };
+        this.classEventList.push({ eventName: eventName, eventFunction: eventFunction, context: context });
+      }
+    },
+    __classEventFire__: {
+      value: function __classEventFire__(eventName) {
+        if (!!this.classEventList) {
+          this.classEventList.fire(eventName);
+        }
+      }
+    }
+  });
+
+  return LeapsModelEventInterface;
+})(LeapsCriteria);
+
 // 直接親子関係には無いが、es6は多重継承をサポートしてないようなので
 // 処理の切り分けのためにクラスを分けて記述する
 
-var LeapsModelRequest = (function (_LeapsCriteria) {
+var LeapsModelRequest = (function (_LeapsModelEventInterface) {
   function LeapsModelRequest() {
     _classCallCheck(this, LeapsModelRequest);
 
-    if (_LeapsCriteria != null) {
-      _LeapsCriteria.apply(this, arguments);
-    }
+    _get(Object.getPrototypeOf(LeapsModelRequest.prototype), "constructor", this).call(this);
   }
 
-  _inherits(LeapsModelRequest, _LeapsCriteria);
+  _inherits(LeapsModelRequest, _LeapsModelEventInterface);
 
   _createClass(LeapsModelRequest, {
     routing: {
@@ -670,12 +825,13 @@ var LeapsModelRequest = (function (_LeapsCriteria) {
   });
 
   return LeapsModelRequest;
-})(LeapsCriteria);
+})(LeapsModelEventInterface);
 
 var LeapsModel = (function (_LeapsModelRequest) {
   function LeapsModel(data) {
     _classCallCheck(this, LeapsModel);
 
+    _get(Object.getPrototypeOf(LeapsModel.prototype), "constructor", this).call(this);
     this.modelClass = this.constructor;
 
     // propertyとしてオブジェクトに生えるものと
@@ -748,12 +904,15 @@ var LeapsModel = (function (_LeapsModelRequest) {
         _.each(modelList, function (d) {
           d.save();
         });
+        this.__classEventFire__("onInsert");
         return modelList;
       }
     },
     destroyAll: {
       value: function destroyAll() {
-        return this.db().destroyAll();
+        var result = this.db().destroyAll();
+        this.__classEventFire__("onDestroyAll");
+        return result;
       }
     },
     setUp: {

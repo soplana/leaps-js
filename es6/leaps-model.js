@@ -4,10 +4,14 @@
 //=require leaps-database.js
 //=require leaps-criteria.js
 //=require leaps-route.js
+//=require leaps-event-list.js
+//=require leaps-model-event.js
+//=require leaps-model-event-interface.js
 //=require leaps-model-request.js
 
 class LeapsModel extends LeapsModelRequest {
   constructor(data) {
+    super();
     this.modelClass = this.constructor;
 
     // propertyとしてオブジェクトに生えるものと
@@ -33,11 +37,14 @@ class LeapsModel extends LeapsModelRequest {
   // 失敗時にロールバックする処理ほしい気がする
   static insert(modelList) {
     _.each(modelList, (d)=>{ d.save() });
+    this.__classEventFire__("onInsert");
     return modelList
   };
 
   static destroyAll() {
-    return this.db().destroyAll()
+    var result = this.db().destroyAll();
+    this.__classEventFire__("onDestroyAll");
+    return result
   };
 
   static setUp(options) {

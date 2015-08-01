@@ -251,6 +251,30 @@ promise.then(function(data){
 });
 ```
 
+## Leaps Event
+モデルの保存時や、HTTPレスポンスを受け取った時などに発火するEventを設定することが出来ます。Eventの種類は以下となります。
+
+#### クエリ系Event
+```
+model.onSave(function,    context); // 新規レコード作成
+model.onChange(function,  context); // アップデート
+model.onDestroy(function, context); // 削除
+
+Model.onInsert(function,  content);    // 一括保存
+Model.onDestroyAll(function, context); // 一括削除
+```
+
+#### 通信系Event
+通信Eventは成功時(HTTP STATUS CODE 200)に発火します。
+```
+model.onShow(function,    context);
+model.onUpdate(function,  context);
+model.onCreate(function,  context);
+model.onDelete(function,  context);
+
+Model.onIndex(function,   content);
+```
+
 ## test
 
 テストの実行はブラウザ上を想定します。テストの実態は`./src/test/`以下にあります。

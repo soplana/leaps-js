@@ -16,7 +16,12 @@ class LeapsHttpRequest {
   };
 
   static index(modelClass, options={}) {
-    return this.__getRequest__("GET", modelClass, modelClass.routing().indexPath, options);
+    return this.__getRequest__(
+      "GET",
+      modelClass,
+      modelClass.routing().indexPath,
+      options
+    );
   };
 
   static show(model, options={}) {
@@ -69,6 +74,9 @@ class LeapsHttpRequest {
       if(!!model.__id) resultModel.__id = model.__id;
       if(!!options.save) resultModel.save();
 
+      if     (httpMethod === "POST"  ) model.__eventFire__("onCreate");
+      else if(httpMethod === "PUT"   ) model.__eventFire__("onUpdate");
+
       return resultModel;
 
     }, (xhr)=>{
@@ -86,11 +94,16 @@ class LeapsHttpRequest {
       if(_.isArray(data)) {
         var resultModels = _.map(data, d => model.castModel(d));
         if(options.save) model.insert( resultModels );
+        model.__classEventFire__("onIndex");
         return resultModels;
 
       } else {
         var resultModel = model.constructor.castModel(data);
         if(options.save) resultModel.save();
+
+        if     (httpMethod === "GET"   ) model.__eventFire__("onShow");
+        else if(httpMethod === "DELETE") model.__eventFire__("onDelete");
+
         return resultModel;
       };
 

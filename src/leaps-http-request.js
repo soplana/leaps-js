@@ -113,6 +113,8 @@ var LeapsHttpRequest = (function () {
           if (!!model.__id) resultModel.__id = model.__id;
           if (!!options.save) resultModel.save();
 
+          if (httpMethod === "POST") model.__eventFire__("onCreate");else if (httpMethod === "PUT") model.__eventFire__("onUpdate");
+
           return resultModel;
         }, function (xhr) {
           xhr.open(httpMethod, path, true);
@@ -134,10 +136,14 @@ var LeapsHttpRequest = (function () {
               return model.castModel(d);
             });
             if (options.save) model.insert(resultModels);
+            model.__classEventFire__("onIndex");
             return resultModels;
           } else {
             var resultModel = model.constructor.castModel(data);
             if (options.save) resultModel.save();
+
+            if (httpMethod === "GET") model.__eventFire__("onShow");else if (httpMethod === "DELETE") model.__eventFire__("onDelete");
+
             return resultModel;
           };
         }, function (xhr) {
