@@ -40,6 +40,9 @@ class LeapsModelEventInterface extends LeapsCriteria {
   };
 
   __eventFire__(eventName) {
+    var afterEvent = this[eventName.replace(/^on/, "after")];
+    if(!!afterEvent) afterEvent.call(this);
+
     this.eventList.fire(eventName);
   };
 

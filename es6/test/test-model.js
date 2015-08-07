@@ -11,3 +11,21 @@ class User extends LeapsModel {
     }
   };
 };
+
+class UserWithUpdate extends User {
+  static resourcePath() {
+    return "/users/{name}.json"
+  };
+
+  static properties() {
+    return {
+      name:        "",
+      age:         null,
+      admin:       false
+    }
+  };
+
+  afterUpdate() {
+    this.result = true
+  };
+};

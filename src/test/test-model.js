@@ -38,3 +38,42 @@ var User = (function (_LeapsModel) {
 })(LeapsModel);
 
 ;
+
+var UserWithUpdate = (function (_User) {
+  function UserWithUpdate() {
+    _classCallCheck(this, UserWithUpdate);
+
+    if (_User != null) {
+      _User.apply(this, arguments);
+    }
+  }
+
+  _inherits(UserWithUpdate, _User);
+
+  _createClass(UserWithUpdate, {
+    afterUpdate: {
+      value: function afterUpdate() {
+        this.result = true;
+      }
+    }
+  }, {
+    resourcePath: {
+      value: function resourcePath() {
+        return "/users/{name}.json";
+      }
+    },
+    properties: {
+      value: function properties() {
+        return {
+          name: "",
+          age: null,
+          admin: false
+        };
+      }
+    }
+  });
+
+  return UserWithUpdate;
+})(User);
+
+;

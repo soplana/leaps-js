@@ -185,6 +185,18 @@ describe("leaps-event", ()=> {
       });
       this.requests[0].respond(200, {'Content-Type': 'text/json'}, JSON.stringify(user));
     });
+
+    context('onUpdateをクラスで宣言する', ()=>{
+      var user   = new UserWithUpdate({name: 'aa', age: 10});
+
+      it("onUpdateが実行されること", function(done){
+        user.update().then(()=>{
+          expect( user.result ).to.be.true;
+          done();
+        });
+        this.requests[0].respond(200, {'Content-Type': 'text/json'}, JSON.stringify(user));
+      });
+    });
   });
 
   describe('onCreate', ()=>{

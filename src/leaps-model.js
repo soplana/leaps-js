@@ -691,6 +691,9 @@ var LeapsModelEventInterface = (function (_LeapsCriteria) {
     },
     __eventFire__: {
       value: function __eventFire__(eventName) {
+        var afterEvent = this[eventName.replace(/^on/, "after")];
+        if (!!afterEvent) afterEvent.call(this);
+
         this.eventList.fire(eventName);
       }
     }
