@@ -33,7 +33,7 @@ class SampleUserModel extends LeapsModel {
 }
 ```
 
-`setUp`を呼び出し、オプションをわたします。
+`setUp`を呼び出し、オプションをわたします。  
 必須オプションは`database`のみです。DB名をわたします。
 ```
 LeapsModel.setUp({database: "sample"})
@@ -48,14 +48,16 @@ LeapsModel.setUp({
 })
 ```
 
-データを作成してみます。保存されたデータはdefaultだとlocalStorageに保存されます。
+データを作成してみます。  
+保存されたデータはdefaultだとlocalStorageに保存されます。
 ```
 var user = new SampleUserModel({name: "soplana"});
 user.admin = false
 user.save() // true
 ```
 
-保存したデータを取得します。保存に成功した時点で`__id`というpropertyに自動でシーケンス番号が振られます。
+保存したデータを取得します。  
+保存に成功した時点で`__id`というpropertyに自動でシーケンス番号が振られます。
 ```
 // 全件取得
 SampleUserModel.all()   // [SampleUserModel]
@@ -96,10 +98,10 @@ users.length // 2
 
 ## Ajax Tutorial
 
-### modelにresourceを定義する
+## modelにresourceを定義する
 ```
 class SampleUserModel extends LeapsModel {
-  static resourcePath() {
+  static resource() {
     return '/users/{id}.json'
   };
 
@@ -249,6 +251,58 @@ promise.then(function(data){
 }).catch(function(error){
   ...
 });
+```
+
+## modelにcustom resourceを定義する
+
+`resource`はRESTに対応するFunctionを自動で定義してくれますが、
+customResourceを使用することで独自にエンドポイントを設定することが出来ます。
+```
+class SampleUserModel extends LeapsModel {
+  static customResource() {
+    return {
+      testUpdate : {
+        resource : "/users/{name}/test.json",
+        method   : "PUT"
+      },
+      testShow : {
+        resource : "/users/{name}/test.json",
+        method   : "GET"
+      },
+      testIndex : {
+        resource : "/users/test.json",
+        method   : "GET"
+      }
+    }
+  };
+
+  static properties() {
+    return {
+      id:    null,
+      name:  "",
+      age:   null,
+      admin: false
+    }
+  }
+};
+```
+
+```
+var user = new SampleUserModel({name: "abc"})
+```
+
+リソースのエンドポイントを確認
+```
+user.routing().testShowPath   // /users/abc/test.json
+user.routing().testUpdatePath // /users/abc/test.json
+user.routing().testIndexPath  // /users/test.json
+```
+
+リクエストを発行する
+```
+user.testShow()
+user.testUpdate()
+user.testIndex()
 ```
 
 ## Leaps Event

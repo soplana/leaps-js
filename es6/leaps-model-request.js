@@ -3,11 +3,13 @@
 class LeapsModelRequest extends LeapsModelEventInterface {
   constructor() {
     super();
+
+    if(!!this.constructor.customResource) this.__createResoucesFunction__();
   };
 
 //***************** instanceMethods *****************//
   routing() {
-    return new LeapsRoute(this, this.constructor.resourcePath())
+    return this.constructor.routing(this)
   };
 
   show(options) {
@@ -50,9 +52,31 @@ class LeapsModelRequest extends LeapsModelEventInterface {
     return params.join('&').replace(/%20/g, '+');
   };
 
+//***************** __privateMethods__ *****************//
+
+  // optionでカスタムPathが渡された場合、リクエスト送信用のfunctionの定義
+  __createResoucesFunction__() {
+    _.each(this.constructor.customResource(), (obj, functionName)=>{
+      this[functionName] = function(options) {
+        return LeapsHttpRequest.request(
+          obj.method,
+          this,
+          this.routing()[`${functionName}Path`],
+          options
+        )
+      }
+    });
+  };
+
 //***************** classMethods *****************//
-  static routing() {
-    return new LeapsRoute(null, this.resourcePath())
+  static routing(model=null) {
+    var resource       = {},
+        customResource = {};
+
+    if(!!this.resource)       resource = this.resource();
+    if(!!this.customResource) customResource = this.customResource();
+
+    return new LeapsRoute(model, resource, customResource);
   };
 
   static index(options) {

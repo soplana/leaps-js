@@ -28,7 +28,7 @@ describe('leaps-request', ()=>{
     context('DBへの保存なし', ()=>{
       it("responseが正しいこと", function(done){
         User.index().then((data)=>{
-          expect( response ).deep.equal( data );
+          expect( response.length ).deep.equal( data.length );
           done();
         });
 
@@ -108,7 +108,7 @@ describe('leaps-request', ()=>{
     context('DBへの保存なし', ()=>{
       it("responseが正しいこと", function(done){
         new User( response ).create().then((data)=>{
-          expect( response ).deep.equal( data );
+          expect( response.length ).deep.equal( data.length );
           done();
         });
 
@@ -206,6 +206,58 @@ describe('leaps-request', ()=>{
         this.requests[0].respond(200, {'Content-Type': 'text/json'}, JSON.stringify(response));
       });
     });
+  });
+
+
+  describe('customResourceのテスト', ()=>{
+    var user     = new User({name: 'aa', age: 10}),
+        response = user;
+
+    context('testShow', ()=>{
+      it("pathが正しいこと", function(){
+        expect( user.routing().testShowPath ).to.equal( "/users/aa/test.json" )
+      });
+
+      it("responseが正しいこと", function(done){
+        user.testShow().then((data)=>{
+          expect( response.name ).to.equal( data.name );
+          done();
+        });
+
+        this.requests[0].respond(200, {'Content-Type': 'text/json'}, JSON.stringify(response));
+      });
+    });
+
+    context('testUpdate', ()=>{
+      it("pathが正しいこと", function(){
+        expect( user.routing().testUpdatePath ).to.equal( "/users/aa/test.json" )
+      });
+
+      it("responseが正しいこと", function(done){
+        user.testUpdate().then((data)=>{
+          expect( response.name ).to.equal( data.name );
+          done();
+        });
+
+        this.requests[0].respond(200, {'Content-Type': 'text/json'}, JSON.stringify(response));
+      });
+    });
+
+    context('testIndex', ()=>{
+      it("pathが正しいこと", function(){
+        expect( user.routing().testIndexPath ).to.equal( "/users/test.json" )
+      });
+
+      it("responseが正しいこと", function(done){
+        user.testIndex().then((data)=>{
+          expect( response.name ).to.equal( data.name );
+          done();
+        });
+
+        this.requests[0].respond(200, {'Content-Type': 'text/json'}, JSON.stringify(response));
+      });
+    });
+
   });
 
 });

@@ -18,9 +18,27 @@ var User = (function (_LeapsModel) {
   _inherits(User, _LeapsModel);
 
   _createClass(User, null, {
-    resourcePath: {
-      value: function resourcePath() {
+    resource: {
+      value: function resource() {
         return "/users/{name}.json";
+      }
+    },
+    customResource: {
+      value: function customResource() {
+        return {
+          testUpdate: {
+            resource: "/users/{name}/test.json",
+            method: "PUT"
+          },
+          testShow: {
+            resource: "/users/{name}/test.json",
+            method: "GET"
+          },
+          testIndex: {
+            resource: "/users/test.json",
+            method: "GET"
+          }
+        };
       }
     },
     properties: {
@@ -57,8 +75,8 @@ var UserWithUpdate = (function (_User) {
       }
     }
   }, {
-    resourcePath: {
-      value: function resourcePath() {
+    resource: {
+      value: function resource() {
         return "/users/{name}.json";
       }
     },

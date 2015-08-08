@@ -75,28 +75,41 @@ var LeapsHttpRequest = (function () {
       value: function show(model) {
         var options = arguments[1] === undefined ? {} : arguments[1];
 
-        return this.__getRequest__("GET", model, model.routing().showPath, options);
+        return this.request("GET", model, model.routing().showPath, options);
       }
     },
     update: {
       value: function update(model) {
         var options = arguments[1] === undefined ? {} : arguments[1];
 
-        return this.__sendRequest__("PUT", model, model.routing().updatePath, options);
+        return this.request("PUT", model, model.routing().updatePath, options);
       }
     },
     create: {
       value: function create(model) {
         var options = arguments[1] === undefined ? {} : arguments[1];
 
-        return this.__sendRequest__("POST", model, model.routing().createPath, options);
+        return this.request("POST", model, model.routing().createPath, options);
       }
     },
     "delete": {
       value: function _delete(model) {
         var options = arguments[1] === undefined ? {} : arguments[1];
 
-        return this.__getRequest__("DELETE", model, model.routing().deletePath, options);
+        return this.request("DELETE", model, model.routing().deletePath, options);
+      }
+    },
+    request: {
+      value: function request(httpMethod, model, path) {
+        var options = arguments[3] === undefined ? {} : arguments[3];
+
+        if (httpMethod === "GET" || httpMethod === "DELETE") {
+          return this.__getRequest__(httpMethod, model, path, options);
+        } else if (httpMethod === "PUT" || httpMethod === "POST") {
+          return this.__sendRequest__(httpMethod, model, path, options);
+        } else {
+          return null;
+        };
       }
     },
     xhrRequest: {
@@ -538,58 +551,72 @@ var LeapsCriteria = (function () {
 ;
 
 var LeapsRoute = (function () {
-  function LeapsRoute(model, pathString) {
+  function LeapsRoute(model, pathString, pathObject) {
     _classCallCheck(this, LeapsRoute);
 
     this.model = model;
-    this.path = pathString;
+    this.pathString = pathString;
+    this.pathObject = pathObject;
+
+    if (!!this.pathObject) this.__createPathFunction__();
   }
 
   _createClass(LeapsRoute, {
     indexPath: {
       get: function () {
-        return this.__staticPath__();
+        return this.__staticPath__(this.pathString);
       }
     },
     showPath: {
       get: function () {
-        return this.__dynamicPath__();
+        return this.__dynamicPath__(this.pathString);
       }
     },
     updatePath: {
       get: function () {
-        return this.__dynamicPath__();
+        return this.__dynamicPath__(this.pathString);
       }
     },
     createPath: {
       get: function () {
-        return this.__staticPath__();
+        return this.__staticPath__(this.pathString);
       }
     },
     deletePath: {
       get: function () {
-        return this.__dynamicPath__();
+        return this.__dynamicPath__(this.pathString);
       }
     },
     __staticPath__: {
 
       //***************** __privateMethods__ *****************//
 
-      value: function __staticPath__() {
-        return this.path.replace(/\{.+\}|\/\{.+\}/, "");
+      value: function __staticPath__(path) {
+        return path.replace(/\{.+\}|\/\{.+\}/, "");
       }
     },
     __dynamicPath__: {
-      value: function __dynamicPath__() {
+      value: function __dynamicPath__(path) {
         var _this = this;
 
-        return this.path.replace(/\{.+?\}/g, function (match) {
+        return path.replace(/\{.+?\}/g, function (match) {
           var keyName = match.replace(/\{|\}/g, "");
           if (_.has(_this.model.toObject(), keyName)) {
             return _this.model[keyName];
           } else {
             return null;
           }
+        });
+      }
+    },
+    __createPathFunction__: {
+      value: function __createPathFunction__() {
+        var _this = this;
+
+        _.each(this.pathObject, function (obj, functionName) {
+          _this.__defineGetter__("" + functionName + "Path", function () {
+            return _this.__dynamicPath__(obj.resource);
+          });
         });
       }
     }
@@ -752,6 +779,8 @@ var LeapsModelRequest = (function (_LeapsModelEventInterface) {
     _classCallCheck(this, LeapsModelRequest);
 
     _get(Object.getPrototypeOf(LeapsModelRequest.prototype), "constructor", this).call(this);
+
+    if (!!this.constructor.customResource) this.__createResoucesFunction__();
   }
 
   _inherits(LeapsModelRequest, _LeapsModelEventInterface);
@@ -762,7 +791,7 @@ var LeapsModelRequest = (function (_LeapsModelEventInterface) {
       //***************** instanceMethods *****************//
 
       value: function routing() {
-        return new LeapsRoute(this, this.constructor.resourcePath());
+        return this.constructor.routing(this);
       }
     },
     show: {
@@ -810,6 +839,22 @@ var LeapsModelRequest = (function (_LeapsModelEventInterface) {
 
         return params.join("&").replace(/%20/g, "+");
       }
+    },
+    __createResoucesFunction__: {
+
+      //***************** __privateMethods__ *****************//
+
+      // optionでカスタムPathが渡された場合、リクエスト送信用のfunctionの定義
+
+      value: function __createResoucesFunction__() {
+        var _this = this;
+
+        _.each(this.constructor.customResource(), function (obj, functionName) {
+          _this[functionName] = function (options) {
+            return LeapsHttpRequest.request(obj.method, this, this.routing()["" + functionName + "Path"], options);
+          };
+        });
+      }
     }
   }, {
     routing: {
@@ -817,7 +862,15 @@ var LeapsModelRequest = (function (_LeapsModelEventInterface) {
       //***************** classMethods *****************//
 
       value: function routing() {
-        return new LeapsRoute(null, this.resourcePath());
+        var model = arguments[0] === undefined ? null : arguments[0];
+
+        var resource = {},
+            customResource = {};
+
+        if (!!this.resource) resource = this.resource();
+        if (!!this.customResource) customResource = this.customResource();
+
+        return new LeapsRoute(model, resource, customResource);
       }
     },
     index: {

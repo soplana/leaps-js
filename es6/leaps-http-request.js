@@ -25,19 +25,31 @@ class LeapsHttpRequest {
   };
 
   static show(model, options={}) {
-    return this.__getRequest__("GET", model, model.routing().showPath, options);
+    return this.request("GET", model, model.routing().showPath, options);
   };
 
   static update(model, options={}) {
-    return this.__sendRequest__("PUT", model, model.routing().updatePath, options);
+    return this.request("PUT", model, model.routing().updatePath, options);
   };
 
   static create(model, options={}) {
-    return this.__sendRequest__("POST", model, model.routing().createPath, options);
+    return this.request("POST", model, model.routing().createPath, options);
   };
 
   static delete(model, options={}) {
-    return this.__getRequest__("DELETE", model, model.routing().deletePath, options);
+    return this.request("DELETE", model, model.routing().deletePath, options);
+  };
+
+  static request(httpMethod, model, path, options={}){
+    if(httpMethod==="GET" || httpMethod==="DELETE"){
+      return this.__getRequest__(httpMethod, model, path, options);
+
+    } else if(httpMethod==="PUT" || httpMethod==="POST"){
+      return this.__sendRequest__(httpMethod, model, path, options);
+
+    } else {
+      return null
+    };
   };
 
   static xhrRequest(dataCast, callback) {

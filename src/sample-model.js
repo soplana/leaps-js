@@ -26,6 +26,24 @@ var SampleUserModel = (function (_LeapsModel) {
           admin: false
         };
       }
+    },
+    customResource: {
+      value: function customResource() {
+        return {
+          testUpdate: {
+            resource: "/users/{name}/test.json",
+            method: "PUT"
+          },
+          testShow: {
+            resource: "/users/{name}/test.json",
+            method: "GET"
+          },
+          testIndex: {
+            resource: "/users/test.json",
+            method: "GET"
+          }
+        };
+      }
     }
   });
 

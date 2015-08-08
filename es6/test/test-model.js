@@ -1,6 +1,23 @@
 class User extends LeapsModel {
-  static resourcePath() {
+  static resource() {
     return "/users/{name}.json"
+  };
+
+  static customResource() {
+    return {
+      testUpdate : {
+        resource : "/users/{name}/test.json",
+        method   : "PUT"
+      },
+      testShow : {
+        resource : "/users/{name}/test.json",
+        method   : "GET"
+      },
+      testIndex : {
+        resource : "/users/test.json",
+        method   : "GET"
+      }
+    }
   };
 
   static properties() {
@@ -13,7 +30,7 @@ class User extends LeapsModel {
 };
 
 class UserWithUpdate extends User {
-  static resourcePath() {
+  static resource() {
     return "/users/{name}.json"
   };
 

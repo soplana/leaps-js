@@ -41,28 +41,41 @@ var LeapsHttpRequest = (function () {
       value: function show(model) {
         var options = arguments[1] === undefined ? {} : arguments[1];
 
-        return this.__getRequest__("GET", model, model.routing().showPath, options);
+        return this.request("GET", model, model.routing().showPath, options);
       }
     },
     update: {
       value: function update(model) {
         var options = arguments[1] === undefined ? {} : arguments[1];
 
-        return this.__sendRequest__("PUT", model, model.routing().updatePath, options);
+        return this.request("PUT", model, model.routing().updatePath, options);
       }
     },
     create: {
       value: function create(model) {
         var options = arguments[1] === undefined ? {} : arguments[1];
 
-        return this.__sendRequest__("POST", model, model.routing().createPath, options);
+        return this.request("POST", model, model.routing().createPath, options);
       }
     },
     "delete": {
       value: function _delete(model) {
         var options = arguments[1] === undefined ? {} : arguments[1];
 
-        return this.__getRequest__("DELETE", model, model.routing().deletePath, options);
+        return this.request("DELETE", model, model.routing().deletePath, options);
+      }
+    },
+    request: {
+      value: function request(httpMethod, model, path) {
+        var options = arguments[3] === undefined ? {} : arguments[3];
+
+        if (httpMethod === "GET" || httpMethod === "DELETE") {
+          return this.__getRequest__(httpMethod, model, path, options);
+        } else if (httpMethod === "PUT" || httpMethod === "POST") {
+          return this.__sendRequest__(httpMethod, model, path, options);
+        } else {
+          return null;
+        };
       }
     },
     xhrRequest: {

@@ -28,7 +28,7 @@ describe("leaps-request", function () {
     context("DBへの保存なし", function () {
       it("responseが正しいこと", function (done) {
         User.index().then(function (data) {
-          expect(response).deep.equal(data);
+          expect(response.length).deep.equal(data.length);
           done();
         });
 
@@ -107,7 +107,7 @@ describe("leaps-request", function () {
     context("DBへの保存なし", function () {
       it("responseが正しいこと", function (done) {
         new User(response).create().then(function (data) {
-          expect(response).deep.equal(data);
+          expect(response.length).deep.equal(data.length);
           done();
         });
 
@@ -197,6 +197,56 @@ describe("leaps-request", function () {
       it("DBに保存されていないこと", function (done) {
         user["delete"]().then(function (data) {
           expect(User.all().length).to.equal(0);
+          done();
+        });
+
+        this.requests[0].respond(200, { "Content-Type": "text/json" }, JSON.stringify(response));
+      });
+    });
+  });
+
+  describe("customResourceのテスト", function () {
+    var user = new User({ name: "aa", age: 10 }),
+        response = user;
+
+    context("testShow", function () {
+      it("pathが正しいこと", function () {
+        expect(user.routing().testShowPath).to.equal("/users/aa/test.json");
+      });
+
+      it("responseが正しいこと", function (done) {
+        user.testShow().then(function (data) {
+          expect(response.name).to.equal(data.name);
+          done();
+        });
+
+        this.requests[0].respond(200, { "Content-Type": "text/json" }, JSON.stringify(response));
+      });
+    });
+
+    context("testUpdate", function () {
+      it("pathが正しいこと", function () {
+        expect(user.routing().testUpdatePath).to.equal("/users/aa/test.json");
+      });
+
+      it("responseが正しいこと", function (done) {
+        user.testUpdate().then(function (data) {
+          expect(response.name).to.equal(data.name);
+          done();
+        });
+
+        this.requests[0].respond(200, { "Content-Type": "text/json" }, JSON.stringify(response));
+      });
+    });
+
+    context("testIndex", function () {
+      it("pathが正しいこと", function () {
+        expect(user.routing().testIndexPath).to.equal("/users/test.json");
+      });
+
+      it("responseが正しいこと", function (done) {
+        user.testIndex().then(function (data) {
+          expect(response.name).to.equal(data.name);
           done();
         });
 

@@ -16,6 +16,8 @@ var LeapsModelRequest = (function (_LeapsModelEventInterface) {
     _classCallCheck(this, LeapsModelRequest);
 
     _get(Object.getPrototypeOf(LeapsModelRequest.prototype), "constructor", this).call(this);
+
+    if (!!this.constructor.customResource) this.__createResoucesFunction__();
   }
 
   _inherits(LeapsModelRequest, _LeapsModelEventInterface);
@@ -26,7 +28,7 @@ var LeapsModelRequest = (function (_LeapsModelEventInterface) {
       //***************** instanceMethods *****************//
 
       value: function routing() {
-        return new LeapsRoute(this, this.constructor.resourcePath());
+        return this.constructor.routing(this);
       }
     },
     show: {
@@ -74,6 +76,22 @@ var LeapsModelRequest = (function (_LeapsModelEventInterface) {
 
         return params.join("&").replace(/%20/g, "+");
       }
+    },
+    __createResoucesFunction__: {
+
+      //***************** __privateMethods__ *****************//
+
+      // optionでカスタムPathが渡された場合、リクエスト送信用のfunctionの定義
+
+      value: function __createResoucesFunction__() {
+        var _this = this;
+
+        _.each(this.constructor.customResource(), function (obj, functionName) {
+          _this[functionName] = function (options) {
+            return LeapsHttpRequest.request(obj.method, this, this.routing()["" + functionName + "Path"], options);
+          };
+        });
+      }
     }
   }, {
     routing: {
@@ -81,7 +99,15 @@ var LeapsModelRequest = (function (_LeapsModelEventInterface) {
       //***************** classMethods *****************//
 
       value: function routing() {
-        return new LeapsRoute(null, this.resourcePath());
+        var model = arguments[0] === undefined ? null : arguments[0];
+
+        var resource = {},
+            customResource = {};
+
+        if (!!this.resource) resource = this.resource();
+        if (!!this.customResource) customResource = this.customResource();
+
+        return new LeapsRoute(model, resource, customResource);
       }
     },
     index: {
