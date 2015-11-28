@@ -1,8 +1,15 @@
-import LeapsModelRequest from  './leaps-model-request'
-import LeapsHttpRequest  from  './leaps-http-request'
-import LeapsDatabase     from  './leaps-database'
+import LeapsHttpRequest         from './leaps-http-request'
+import LeapsDatabase            from './leaps-database'
+import LeapsModelRequest        from './leaps-model-request'
+import LeapsCriteria            from './leaps-criteria'
+import LeapsModelEventInterface from './leaps-model-event-interface'
+import LeapsEventList           from './leaps-event-list'
 
-export default class LeapsModel extends LeapsModelRequest {
+export default class LeapsModel extends
+  LeapsCriteria.mixin(
+  LeapsModelRequest.mixin(
+  LeapsModelEventInterface)) {
+
   constructor(data) {
     super();
     this.modelClass = this.constructor;
@@ -10,6 +17,11 @@ export default class LeapsModel extends LeapsModelRequest {
     // propertyとしてオブジェクトに生えるものと
     // recordとして保存されるオブジェクトを切り離したい
     this.__createProperties__(data);
+
+    if(!!this.constructor.customResource) this.__createResoucesFunction__();
+
+    // instanceイベントを保持
+    this.eventList = new LeapsEventList();
   };
 
 //***************** instanceMethods *****************//

@@ -1,13 +1,6 @@
-import LeapsCriteria  from './leaps-criteria'
 import LeapsEventList from './leaps-event-list'
 
-export default class LeapsModelEventInterface extends LeapsCriteria {
-  constructor() {
-    super();
-    this.eventList = new LeapsEventList();
-  };
-
-
+export default class LeapsModelEventInterface {
   // クエリEvent
   onSave(event,    context) {this.__addEvent__("onSave",    event, context)};
   onChange(event,  context) {this.__addEvent__("onChange",  event, context)};

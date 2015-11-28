@@ -7,9 +7,13 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
+var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var _leapsDatabase = require('./leaps-database');
 
@@ -17,43 +21,52 @@ var _leapsDatabase = require('./leaps-database');
 
 var _leapsDatabase2 = _interopRequireDefault(_leapsDatabase);
 
-var LeapsCriteria = (function () {
-  function LeapsCriteria() {
-    _classCallCheck(this, LeapsCriteria);
-  }
+function LeapsCriteriaMixin() {
+  var base = arguments.length <= 0 || arguments[0] === undefined ? null : arguments[0];
 
-  _createClass(LeapsCriteria, null, [{
-    key: 'all',
-    value: function all() {
-      var _this = this;
+  var LeapsCriteria = (function (_base) {
+    _inherits(LeapsCriteria, _base);
 
-      var dataList = _leapsDatabase2['default'].selectAll(this.name);
-      return _.map(dataList, function (data) {
-        return _this.castModel(data);
-      });
+    function LeapsCriteria() {
+      _classCallCheck(this, LeapsCriteria);
+
+      _get(Object.getPrototypeOf(LeapsCriteria.prototype), 'constructor', this).apply(this, arguments);
     }
-  }, {
-    key: 'find',
-    value: function find(__id) {
-      var record = this.db().findById(__id);
-      return record ? this.castModel(record) : null;
-    }
-  }, {
-    key: 'where',
-    value: function where(conditions) {
-      var _this2 = this;
 
-      return _.map(this.db().where(conditions), function (data) {
-        return _this2.castModel(data);
-      });
-    }
-  }]);
+    _createClass(LeapsCriteria, null, [{
+      key: 'all',
+      value: function all() {
+        var _this = this;
 
+        var dataList = _leapsDatabase2['default'].selectAll(this.name);
+        return _.map(dataList, function (data) {
+          return _this.castModel(data);
+        });
+      }
+    }, {
+      key: 'find',
+      value: function find(__id) {
+        var record = this.db().findById(__id);
+        return record ? this.castModel(record) : null;
+      }
+    }, {
+      key: 'where',
+      value: function where(conditions) {
+        var _this2 = this;
+
+        return _.map(this.db().where(conditions), function (data) {
+          return _this2.castModel(data);
+        });
+      }
+    }]);
+
+    return LeapsCriteria;
+  })(base);
+
+  ;
   return LeapsCriteria;
-})();
-
-exports['default'] = LeapsCriteria;
-;
+};
+exports['default'] = { mixin: LeapsCriteriaMixin };
 module.exports = exports['default'];
 
 },{"./leaps-database":2}],2:[function(require,module,exports){
@@ -582,88 +595,75 @@ exports["default"] = LeapsHttpRequest;
 module.exports = exports["default"];
 
 },{"./leaps-deferred":3}],6:[function(require,module,exports){
-'use strict';
+"use strict";
 
-Object.defineProperty(exports, '__esModule', {
+Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var _leapsCriteria = require('./leaps-criteria');
-
-var _leapsCriteria2 = _interopRequireDefault(_leapsCriteria);
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var _leapsEventList = require('./leaps-event-list');
 
 var _leapsEventList2 = _interopRequireDefault(_leapsEventList);
 
-var LeapsModelEventInterface = (function (_LeapsCriteria) {
-  _inherits(LeapsModelEventInterface, _LeapsCriteria);
-
+var LeapsModelEventInterface = (function () {
   function LeapsModelEventInterface() {
     _classCallCheck(this, LeapsModelEventInterface);
-
-    _get(Object.getPrototypeOf(LeapsModelEventInterface.prototype), 'constructor', this).call(this);
-    this.eventList = new _leapsEventList2['default']();
   }
 
   _createClass(LeapsModelEventInterface, [{
-    key: 'onSave',
+    key: "onSave",
 
     // クエリEvent
     value: function onSave(event, context) {
       this.__addEvent__("onSave", event, context);
     }
   }, {
-    key: 'onChange',
+    key: "onChange",
     value: function onChange(event, context) {
       this.__addEvent__("onChange", event, context);
     }
   }, {
-    key: 'onDestroy',
+    key: "onDestroy",
     value: function onDestroy(event, context) {
       this.__addEvent__("onDestroy", event, context);
     }
   }, {
-    key: 'onShow',
+    key: "onShow",
 
     // 通信Event
     value: function onShow(event, context) {
       this.__addEvent__("onShow", event, context);
     }
   }, {
-    key: 'onUpdate',
+    key: "onUpdate",
     value: function onUpdate(event, context) {
       this.__addEvent__("onUpdate", event, context);
     }
   }, {
-    key: 'onCreate',
+    key: "onCreate",
     value: function onCreate(event, context) {
       this.__addEvent__("onCreate", event, context);
     }
   }, {
-    key: 'onDelete',
+    key: "onDelete",
     value: function onDelete(event, context) {
       this.__addEvent__("onDelete", event, context);
     }
   }, {
-    key: '__addEvent__',
+    key: "__addEvent__",
 
     // class変数としてのeventListは区別する
     value: function __addEvent__(eventName, eventFunction, context) {
       this.eventList.push({ eventName: eventName, eventFunction: eventFunction, context: context });
     }
   }, {
-    key: '__eventFire__',
+    key: "__eventFire__",
     value: function __eventFire__(eventName) {
       var afterEvent = this[eventName.replace(/^on/, "after")];
       if (!!afterEvent) afterEvent.call(this);
@@ -671,7 +671,7 @@ var LeapsModelEventInterface = (function (_LeapsCriteria) {
       this.eventList.fire(eventName);
     }
   }], [{
-    key: 'onDestroyAll',
+    key: "onDestroyAll",
 
     //***************** classMethods *****************//
     // クエリEvent
@@ -679,30 +679,30 @@ var LeapsModelEventInterface = (function (_LeapsCriteria) {
       this.__addClassEvent__("onDestroyAll", event, context);
     }
   }, {
-    key: 'onInsert',
+    key: "onInsert",
     value: function onInsert(event, context) {
       this.__addClassEvent__("onInsert", event, context);
     }
   }, {
-    key: 'onIndex',
+    key: "onIndex",
 
     // 通信Event
     value: function onIndex(event, context) {
       this.__addClassEvent__("onIndex", event, context);
     }
   }, {
-    key: '__addClassEvent__',
+    key: "__addClassEvent__",
 
     //***************** __privateMethods__ *****************//
     // class変数としてのeventListは区別する
     value: function __addClassEvent__(eventName, eventFunction, context) {
       if (!this.classEventList) {
-        this.classEventList = new _leapsEventList2['default']();
+        this.classEventList = new _leapsEventList2["default"]();
       };
       this.classEventList.push({ eventName: eventName, eventFunction: eventFunction, context: context });
     }
   }, {
-    key: '__classEventFire__',
+    key: "__classEventFire__",
     value: function __classEventFire__(eventName) {
       if (!!this.classEventList) {
         this.classEventList.fire(eventName);
@@ -711,12 +711,12 @@ var LeapsModelEventInterface = (function (_LeapsCriteria) {
   }]);
 
   return LeapsModelEventInterface;
-})(_leapsCriteria2['default']);
+})();
 
-exports['default'] = LeapsModelEventInterface;
-module.exports = exports['default'];
+exports["default"] = LeapsModelEventInterface;
+module.exports = exports["default"];
 
-},{"./leaps-criteria":1,"./leaps-event-list":4}],7:[function(require,module,exports){
+},{"./leaps-event-list":4}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -725,7 +725,7 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _get = function get(_x3, _x4, _x5) { var _again = true; _function: while (_again) { var object = _x3, property = _x4, receiver = _x5; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x3 = parent; _x4 = property; _x5 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -733,129 +733,125 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var _leapsModelEventInterface = require('./leaps-model-event-interface');
-
-var _leapsModelEventInterface2 = _interopRequireDefault(_leapsModelEventInterface);
-
 var _leapsHttpRequest = require('./leaps-http-request');
 
 var _leapsHttpRequest2 = _interopRequireDefault(_leapsHttpRequest);
 
 var _leapsRoute = require('./leaps-route');
 
-// 直接親子関係には無いが、es6は多重継承をサポートしてないようなので
-// 処理の切り分けのためにクラスを分けて記述する
-
 var _leapsRoute2 = _interopRequireDefault(_leapsRoute);
 
-var LeapsModelRequest = (function (_LeapsModelEventInterface) {
-  _inherits(LeapsModelRequest, _LeapsModelEventInterface);
+function LeapsModelRequestMixin() {
+  var base = arguments.length <= 0 || arguments[0] === undefined ? null : arguments[0];
 
-  function LeapsModelRequest() {
-    _classCallCheck(this, LeapsModelRequest);
+  var LeapsModelRequest = (function (_base) {
+    _inherits(LeapsModelRequest, _base);
 
-    _get(Object.getPrototypeOf(LeapsModelRequest.prototype), 'constructor', this).call(this);
+    function LeapsModelRequest() {
+      _classCallCheck(this, LeapsModelRequest);
 
-    if (!!this.constructor.customResource) this.__createResoucesFunction__();
-  }
-
-  _createClass(LeapsModelRequest, [{
-    key: 'routing',
-
-    //***************** instanceMethods *****************//
-    value: function routing() {
-      return this.constructor.routing(this);
+      _get(Object.getPrototypeOf(LeapsModelRequest.prototype), 'constructor', this).apply(this, arguments);
     }
-  }, {
-    key: 'show',
-    value: function show(options) {
-      return _leapsHttpRequest2['default'].show(this, options);
-    }
-  }, {
-    key: 'update',
-    value: function update(options) {
-      return _leapsHttpRequest2['default'].update(this, options);
-    }
-  }, {
-    key: 'create',
-    value: function create(options) {
-      return _leapsHttpRequest2['default'].create(this, options);
-    }
-  }, {
-    key: 'delete',
-    value: function _delete(options) {
-      return _leapsHttpRequest2['default']['delete'](this, options);
-    }
-  }, {
-    key: 'toPostParams',
-    value: function toPostParams() {
-      var params = [];
 
-      for (var key in this.toObject()) {
-        var value = this.toObject()[key],
-            param = this.constructor.name + '[' + encodeURIComponent(key) + ']=' + encodeURIComponent(value);
-        params.push(param);
-      };
+    _createClass(LeapsModelRequest, [{
+      key: 'routing',
 
-      return params.join('&').replace(/%20/g, '+');
-    }
-  }, {
-    key: 'toParams',
-    value: function toParams() {
-      var params = [];
+      //***************** instanceMethods *****************//
+      value: function routing() {
+        return this.constructor.routing(this);
+      }
+    }, {
+      key: 'show',
+      value: function show(options) {
+        return _leapsHttpRequest2['default'].show(this, options);
+      }
+    }, {
+      key: 'update',
+      value: function update(options) {
+        return _leapsHttpRequest2['default'].update(this, options);
+      }
+    }, {
+      key: 'create',
+      value: function create(options) {
+        return _leapsHttpRequest2['default'].create(this, options);
+      }
+    }, {
+      key: 'delete',
+      value: function _delete(options) {
+        return _leapsHttpRequest2['default']['delete'](this, options);
+      }
+    }, {
+      key: 'toPostParams',
+      value: function toPostParams() {
+        var params = [];
 
-      for (var key in this.toObject()) {
-        var value = this.toObject()[key],
-            param = encodeURIComponent(key) + '=' + encodeURIComponent(value);
-        params.push(param);
-      };
-
-      return params.join('&').replace(/%20/g, '+');
-    }
-  }, {
-    key: '__createResoucesFunction__',
-
-    //***************** __privateMethods__ *****************//
-
-    // optionでカスタムPathが渡された場合、リクエスト送信用のfunctionの定義
-    value: function __createResoucesFunction__() {
-      var _this = this;
-
-      _.each(this.constructor.customResource(), function (obj, functionName) {
-        _this[functionName] = function (options) {
-          return _leapsHttpRequest2['default'].request(obj.method, this, this.routing()[functionName + 'Path'], options);
+        for (var key in this.toObject()) {
+          var value = this.toObject()[key],
+              param = this.constructor.name + '[' + encodeURIComponent(key) + ']=' + encodeURIComponent(value);
+          params.push(param);
         };
-      });
-    }
-  }], [{
-    key: 'routing',
 
-    //***************** classMethods *****************//
-    value: function routing() {
-      var model = arguments.length <= 0 || arguments[0] === undefined ? null : arguments[0];
+        return params.join('&').replace(/%20/g, '+');
+      }
+    }, {
+      key: 'toParams',
+      value: function toParams() {
+        var params = [];
 
-      var resource = {},
-          customResource = {};
+        for (var key in this.toObject()) {
+          var value = this.toObject()[key],
+              param = encodeURIComponent(key) + '=' + encodeURIComponent(value);
+          params.push(param);
+        };
 
-      if (!!this.resource) resource = this.resource();
-      if (!!this.customResource) customResource = this.customResource();
+        return params.join('&').replace(/%20/g, '+');
+      }
+    }, {
+      key: '__createResoucesFunction__',
 
-      return new _leapsRoute2['default'](model, resource, customResource);
-    }
-  }, {
-    key: 'index',
-    value: function index(options) {
-      return _leapsHttpRequest2['default'].index(this, options);
-    }
-  }]);
+      //***************** __privateMethods__ *****************//
+
+      // optionでカスタムPathが渡された場合、リクエスト送信用のfunctionの定義
+      value: function __createResoucesFunction__() {
+        var _this = this;
+
+        _.each(this.constructor.customResource(), function (obj, functionName) {
+          _this[functionName] = function (options) {
+            return _leapsHttpRequest2['default'].request(obj.method, this, this.routing()[functionName + 'Path'], options);
+          };
+        });
+      }
+    }], [{
+      key: 'routing',
+
+      //***************** classMethods *****************//
+      value: function routing() {
+        var model = arguments.length <= 0 || arguments[0] === undefined ? null : arguments[0];
+
+        var resource = {},
+            customResource = {};
+
+        if (!!this.resource) resource = this.resource();
+        if (!!this.customResource) customResource = this.customResource();
+
+        return new _leapsRoute2['default'](model, resource, customResource);
+      }
+    }, {
+      key: 'index',
+      value: function index(options) {
+        return _leapsHttpRequest2['default'].index(this, options);
+      }
+    }]);
+
+    return LeapsModelRequest;
+  })(base);
 
   return LeapsModelRequest;
-})(_leapsModelEventInterface2['default']);
-
-exports['default'] = LeapsModelRequest;
+};
+exports['default'] = { mixin: LeapsModelRequestMixin };
 module.exports = exports['default'];
 
-},{"./leaps-http-request":5,"./leaps-model-event-interface":6,"./leaps-route":9}],8:[function(require,module,exports){
+},{"./leaps-http-request":5,"./leaps-route":9}],8:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -871,10 +867,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'd
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var _leapsModelRequest = require('./leaps-model-request');
-
-var _leapsModelRequest2 = _interopRequireDefault(_leapsModelRequest);
 
 var _leapsHttpRequest = require('./leaps-http-request');
 
@@ -884,8 +876,24 @@ var _leapsDatabase = require('./leaps-database');
 
 var _leapsDatabase2 = _interopRequireDefault(_leapsDatabase);
 
-var LeapsModel = (function (_LeapsModelRequest) {
-  _inherits(LeapsModel, _LeapsModelRequest);
+var _leapsModelRequest = require('./leaps-model-request');
+
+var _leapsModelRequest2 = _interopRequireDefault(_leapsModelRequest);
+
+var _leapsCriteria = require('./leaps-criteria');
+
+var _leapsCriteria2 = _interopRequireDefault(_leapsCriteria);
+
+var _leapsModelEventInterface = require('./leaps-model-event-interface');
+
+var _leapsModelEventInterface2 = _interopRequireDefault(_leapsModelEventInterface);
+
+var _leapsEventList = require('./leaps-event-list');
+
+var _leapsEventList2 = _interopRequireDefault(_leapsEventList);
+
+var LeapsModel = (function (_LeapsCriteria$mixin) {
+  _inherits(LeapsModel, _LeapsCriteria$mixin);
 
   function LeapsModel(data) {
     _classCallCheck(this, LeapsModel);
@@ -896,6 +904,11 @@ var LeapsModel = (function (_LeapsModelRequest) {
     // propertyとしてオブジェクトに生えるものと
     // recordとして保存されるオブジェクトを切り離したい
     this.__createProperties__(data);
+
+    if (!!this.constructor.customResource) this.__createResoucesFunction__();
+
+    // instanceイベントを保持
+    this.eventList = new _leapsEventList2['default']();
   }
 
   _createClass(LeapsModel, [{
@@ -994,13 +1007,13 @@ var LeapsModel = (function (_LeapsModelRequest) {
   }]);
 
   return LeapsModel;
-})(_leapsModelRequest2['default']);
+})(_leapsCriteria2['default'].mixin(_leapsModelRequest2['default'].mixin(_leapsModelEventInterface2['default'])));
 
 exports['default'] = LeapsModel;
 ;
 module.exports = exports['default'];
 
-},{"./leaps-database":2,"./leaps-http-request":5,"./leaps-model-request":7}],9:[function(require,module,exports){
+},{"./leaps-criteria":1,"./leaps-database":2,"./leaps-event-list":4,"./leaps-http-request":5,"./leaps-model-event-interface":6,"./leaps-model-request":7}],9:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
