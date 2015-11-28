@@ -1,82 +1,53 @@
-"use strict";
+export default class LeapsRoute {
+  constructor(model, pathString, pathObject) {
+    this.model       = model;
+    this.pathString  = pathString;
+    this.pathObject  = pathObject;
 
-var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+    if(!!this.pathObject) this.__createPathFunction__();
+  };
 
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+  get indexPath() {
+    return this.__staticPath__(this.pathString)
+  };
 
-var LeapsRoute = (function () {
-  function LeapsRoute(model, pathString, pathObject) {
-    _classCallCheck(this, LeapsRoute);
+  get showPath() {
+    return this.__dynamicPath__(this.pathString)
+  };
 
-    this.model = model;
-    this.pathString = pathString;
-    this.pathObject = pathObject;
+  get updatePath() {
+    return this.__dynamicPath__(this.pathString)
+  };
 
-    if (!!this.pathObject) this.__createPathFunction__();
-  }
+  get createPath() {
+    return this.__staticPath__(this.pathString)
+  };
 
-  _createClass(LeapsRoute, {
-    indexPath: {
-      get: function () {
-        return this.__staticPath__(this.pathString);
+  get deletePath() {
+    return this.__dynamicPath__(this.pathString)
+  };
+
+//***************** __privateMethods__ *****************//
+  __staticPath__(path) {
+    return path.replace(/\{.+\}|\/\{.+\}/, "")
+  };
+
+  __dynamicPath__(path) {
+    return path.replace(/\{.+?\}/g, (match)=>{
+      var keyName = match.replace(/\{|\}/g, "");
+      if(_.has(this.model.toObject(), keyName)) {
+        return this.model[keyName]
+      } else {
+        return null
       }
-    },
-    showPath: {
-      get: function () {
-        return this.__dynamicPath__(this.pathString);
-      }
-    },
-    updatePath: {
-      get: function () {
-        return this.__dynamicPath__(this.pathString);
-      }
-    },
-    createPath: {
-      get: function () {
-        return this.__staticPath__(this.pathString);
-      }
-    },
-    deletePath: {
-      get: function () {
-        return this.__dynamicPath__(this.pathString);
-      }
-    },
-    __staticPath__: {
+    })
+  };
 
-      //***************** __privateMethods__ *****************//
-
-      value: function __staticPath__(path) {
-        return path.replace(/\{.+\}|\/\{.+\}/, "");
-      }
-    },
-    __dynamicPath__: {
-      value: function __dynamicPath__(path) {
-        var _this = this;
-
-        return path.replace(/\{.+?\}/g, function (match) {
-          var keyName = match.replace(/\{|\}/g, "");
-          if (_.has(_this.model.toObject(), keyName)) {
-            return _this.model[keyName];
-          } else {
-            return null;
-          }
-        });
-      }
-    },
-    __createPathFunction__: {
-      value: function __createPathFunction__() {
-        var _this = this;
-
-        _.each(this.pathObject, function (obj, functionName) {
-          _this.__defineGetter__("" + functionName + "Path", function () {
-            return _this.__dynamicPath__(obj.resource);
-          });
-        });
-      }
-    }
-  });
-
-  return LeapsRoute;
-})();
-
-;
+  __createPathFunction__() {
+    _.each(this.pathObject, (obj, functionName)=>{
+      this.__defineGetter__(`${functionName}Path`, ()=>{
+        return this.__dynamicPath__(obj.resource);
+      })
+    });
+  };
+};

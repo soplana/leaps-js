@@ -1,146 +1,157 @@
-"use strict";
+import TestModel from './test-model'
 
-describe("leaps-model", function () {
+function modelTestRun() {
+  var User = TestModel.User;
+  var UserWithUpdate = TestModel.UserWithUpdate;
 
-  afterEach(function () {
-    User.destroyAll();
-  });
+  describe('leaps-model', ()=> {
 
-  describe("新規作成", function () {
-    var user = null;
-
-    beforeEach(function () {
-      user = new User({ name: "aaa", age: 30, admin: true });
+    afterEach(()=>{
+      User.destroyAll()
     });
 
-    context("保存に成功すること", function () {
-      it("save()", function () {
-        expect(user.save()).to.be["true"];
-      });
-    });
 
-    context("__idにシーケンス番号が割り当てられること", function () {
-      var user2 = null;
-
-      beforeEach(function () {
-        user.save();
-        user2 = new User({ name: "bbb", age: 35, admin: false });
-        user2.save();
-      });
-
-      it("number型である", function () {
-        expect(user.__id).to.be.a("number");
-      });
-
-      it("シーケンス番号がincrementされている", function () {
-        expect(user2.__id).to.equal(user.__id + 1);
-      });
-    });
-  });
-
-  describe("一括保存", function () {
-    var users = [],
-        size = 10;
-
-    beforeEach(function () {
-      _.each(new Array(size), function (e, index) {
-        users.push(new User({ name: "aaa" + index, age: 20 + index }));
-      });
-
-      User.insert(users);
-    });
-
-    context("保存に成功すること", function () {
-      it("save()", function () {
-        expect(User.all().length).to.equal(size);
-      });
-    });
-  });
-
-  describe("アップデート", function () {
-    var user = null;
-
-    beforeEach(function () {
-      user = new User({ name: "aaa", age: 30, admin: true });
-      user.save();
-    });
-
-    context("アップデートに成功すること", function () {
-      var afterUser = null,
-          afterName = "afterName";
-
-      beforeEach(function () {
-        user.name = afterName;
-        user.__id = user.__id + 100;
-        user.save();
-        afterUser = User.find(user.__id);
-      });
-
-      it("save()", function () {
-        expect(afterUser.name).to.equal(afterName);
-      });
-
-      it("シーケンス番号は上書きできないこと", function () {
-        expect(afterUser.__id).to.equal(user.__id);
-      });
-    });
-  });
-
-  describe("削除", function () {
-    var user = null,
-        __id = null;
-
-    beforeEach(function () {
-      user = new User({ name: "aaa", age: 30, admin: true });
-      user.save();
-      __id = user.__id;
-    });
-
-    it("destroy => true", function () {
-      expect(user.destroy()).to.be["true"];
-    });
-
-    context("削除されていること", function () {
-      beforeEach(function () {
-        user.destroy();
-      });
-
-      it("find => null", function () {
-        expect(User.find(__id)).to.equal(null);
-      });
-    });
-  });
-
-  describe("一括削除", function () {
-    var users = [],
-        size = 10;
-
-    beforeEach(function () {
-      _.each(new Array(size), function (e, index) {
-        users.push(new User({ name: "aaa" + index, age: 20 + index }));
-      });
-
-      User.insert(users);
-      User.destroyAll();
-    });
-
-    context("削除に成功すること", function () {
-      it("0件", function () {
-        expect(User.all().length).to.equal(0);
-      });
-    });
-
-    context("シーケンス番号も初期化されること", function () {
+    describe('新規作成', ()=>{
       var user = null;
 
-      beforeEach(function () {
-        user = new User({ name: "aaa", age: 20 });
-        user.save();
+      beforeEach(()=>{
+        user = new User({name: "aaa", age: 30, admin: true})
       });
 
-      it("1が割り振られること", function () {
-        expect(user.__id).to.equal(1);
+      context('保存に成功すること', ()=> {
+        it('save()', ()=>{
+          expect( user.save() ).to.be.true
+        });
+      });
+
+      context('__idにシーケンス番号が割り当てられること', ()=>{
+        var user2 =  null;
+
+        beforeEach(()=>{
+          user.save()
+          user2 = new User({name: "bbb", age: 35, admin: false})
+          user2.save()
+        });
+
+        it('number型である', ()=>{
+          expect( user.__id ).to.be.a( "number" )
+        });
+
+        it('シーケンス番号がincrementされている', ()=>{
+          expect( user2.__id ).to.equal( user.__id+1 )
+        });
       });
     });
+
+
+    describe('一括保存', ()=>{
+      var users = [],
+          size  = 10;
+
+      beforeEach(()=>{
+        _.each(new Array(size), (e, index)=>{
+          users.push( new User({name: `aaa${index}`, age: 20+index}) )
+        });
+
+        User.insert(users);
+      });
+
+      context('保存に成功すること', ()=> {
+        it('save()', ()=>{
+          expect( User.all().length ).to.equal( size )
+        });
+      });
+    });
+
+
+    describe('アップデート', ()=>{
+      var user = null;
+
+      beforeEach(()=>{
+        user = new User({name: "aaa", age: 30, admin: true})
+        user.save()
+      });
+
+      context('アップデートに成功すること', ()=> {
+        var afterUser  = null,
+            afterName  = "afterName";
+
+        beforeEach(()=>{
+          user.name  = afterName;
+          user.__id  = user.__id + 100
+          user.save();
+          afterUser = User.find(user.__id);
+        });
+
+        it('save()', ()=>{
+          expect( afterUser.name ).to.equal( afterName )
+        });
+
+        it('シーケンス番号は上書きできないこと', ()=>{
+          expect( afterUser.__id ).to.equal( user.__id )
+        });
+      });
+    });
+
+
+    describe('削除', ()=>{
+      var user = null,
+          __id = null;
+
+      beforeEach(()=>{
+        user = new User({name: "aaa", age: 30, admin: true})
+        user.save()
+        __id = user.__id;
+      });
+
+      it('destroy => true', ()=>{
+        expect( user.destroy() ).to.be.true
+      });
+
+      context('削除されていること', ()=> {
+        beforeEach(()=>{ user.destroy() });
+
+        it('find => null', ()=>{
+          expect( User.find(__id) ).to.equal( null )
+        });
+      });
+    });
+
+
+    describe('一括削除', ()=>{
+      var users = [],
+          size  = 10;
+
+      beforeEach(()=>{
+        _.each(new Array(size), (e, index)=>{
+          users.push( new User({name: `aaa${index}`, age: 20+index}) )
+        });
+
+        User.insert(users);
+        User.destroyAll();
+      });
+
+      context('削除に成功すること', ()=> {
+        it('0件', ()=>{
+          expect( User.all().length ).to.equal( 0 )
+        });
+      });
+
+      context('シーケンス番号も初期化されること', ()=> {
+        var user = null;
+
+        beforeEach(()=>{
+          user = new User({name: 'aaa', age: 20})
+          user.save()
+        });
+
+        it('1が割り振られること', ()=>{
+          expect( user.__id ).to.equal( 1 )
+        });
+      });
+    });
+
   });
-});
+};
+
+export default { run: modelTestRun }

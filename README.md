@@ -12,7 +12,7 @@ $ npm run watch
   <head>
     <title>Leaps.js Sample</title>
     <script src='http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js'></script>
-    <script src='./src/leaps-model.js'></script>
+    <script src='./leaps.js'></script>
   </head>
   <body></body>
 </html>
