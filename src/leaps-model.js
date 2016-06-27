@@ -73,6 +73,10 @@ export default class LeapsModel extends
     return {}
   };
 
+  static build(dataList){
+    return _.map(dataList, (data)=>{return new this(data)})
+  }
+
 //***************** __privateMethods__ *****************//
   __createProperties__(data) {
     this.__mergeProperties__(this, data);

@@ -43,6 +43,23 @@ function modelTestRun() {
       });
     });
 
+    describe('一括新規作成', ()=>{
+      var users = null;
+
+      beforeEach(()=>{
+        users = User.build([
+          {name: "aaa", age: 30, admin: true},
+          {name: "bbb", age: 31, admin: true},
+          {name: "ccc", age: 32, admin: true}
+        ])
+      });
+
+      context('作成に成功すること', ()=> {
+        it('save()', ()=>{
+          expect( users.length ).to.equal( 3 )
+        });
+      });
+    })
 
     describe('一括保存', ()=>{
       var users = [],

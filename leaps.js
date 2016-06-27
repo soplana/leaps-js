@@ -1004,6 +1004,15 @@ var LeapsModel = (function (_LeapsCriteria$mixin) {
     value: function properties() {
       return {};
     }
+  }, {
+    key: 'build',
+    value: function build(dataList) {
+      var _this2 = this;
+
+      return _.map(dataList, function (data) {
+        return new _this2(data);
+      });
+    }
   }]);
 
   return LeapsModel;
